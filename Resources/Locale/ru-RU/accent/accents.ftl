@@ -11,14 +11,14 @@ accent-words-dog-3 = Вуф!
 accent-words-dog-4 = Гаф.
 accent-words-dog-5 = Гррр.
 # Mouse
-accent-words-mouse-1 = Пииии!
+accent-words-mouse-1 = Скуик!
 accent-words-mouse-2 = Пиип!
 accent-words-mouse-3 = Чууу!
 accent-words-mouse-4 = Ииии!
 # Mumble
-accent-words-mumble-1 = Ммпмф!
-accent-words-mumble-2 = Мммф мррффф!
-accent-words-mumble-3 = Мммф мпвф!
+accent-words-mumble-1 = Ммпмв!
+accent-words-mumble-2 = Мммв мррввв!
+accent-words-mumble-3 = Мммв мпвф!
 # Silicon
 accent-words-silicon-1 = Бип.
 accent-words-silicon-2 = Буп.
@@ -34,6 +34,9 @@ accent-words-zombie-1 = Грруааа...
 accent-words-zombie-2 = Ммуааа...
 accent-words-zombie-3 = Маазгиии...
 accent-words-zombie-4 = Гррррр...
+accent-words-zombie-5 = Ууаагххххх...
+accent-words-zombie-6 = Граааааоооууллл...
+accent-words-zombie-7 = Мазгии... Ммааазгиии..
 # Generic Aggressive
 accent-words-generic-aggressive-1 = Грр!
 accent-words-generic-aggressive-2 = Рррр!
@@ -49,3 +52,19 @@ accent-words-chicken-1 = Кудах!
 accent-words-chicken-2 = Кудах.
 accent-words-chicken-3 = Кудах?
 accent-words-chicken-4 = Кудах тах-тах!
+# Pig
+accent-words-pig-1 = Хрю.
+accent-words-pig-2 = Хрю?
+accent-words-pig-3 = Хрю!
+accent-words-pig-4 = Хрю Хрю!
+# Kangaroo
+accent-words-kangaroo-1 = Грр!
+accent-words-kangaroo-2 = Ххссс!
+accent-words-kangaroo-3 = Шррр!
+accent-words-kangaroo-4 = Чууу!
+# Slimes
+accent-words-slimes-1 = Блюмп.
+accent-words-slimes-2 = Блимпаф?
+accent-words-slimes-3 = Бламп!
+accent-words-slimes-4 = Блааамп...
+accent-words-slimes-5 = Блабл бламп!

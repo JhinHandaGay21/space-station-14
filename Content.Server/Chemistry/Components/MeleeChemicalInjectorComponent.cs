@@ -14,5 +14,18 @@ namespace Content.Server.Chemistry.Components
 
         [DataField("transferEfficiency")]
         private float _transferEfficiency = 1f;
+
+        /// <summary>
+        /// Whether this will inject through hardsuits or not.
+        /// </summary>
+        [DataField("pierceArmor"), ViewVariables(VVAccess.ReadWrite)]
+        public bool PierceArmor = true;
+
+        /// <summary>
+        ///     Solution to inject from.
+        /// </summary>
+        [ViewVariables(VVAccess.ReadWrite)]
+        [DataField("solution")]
+        public string Solution { get; set; } = "default";
     }
 }

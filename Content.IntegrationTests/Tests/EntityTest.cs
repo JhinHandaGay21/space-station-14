@@ -5,9 +5,13 @@ using System.Threading.Tasks;
 using Content.Shared.CCVar;
 using Content.Shared.Coordinates;
 using NUnit.Framework;
+using Robust.Shared;
+using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
+using Robust.Shared.IoC;
 using Robust.Shared.Log;
 using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 
@@ -18,75 +22,160 @@ namespace Content.IntegrationTests.Tests
     public sealed class EntityTest
     {
         [Test]
-        public async Task SpawnTest()
+        public async Task SpawnAndDeleteAllEntitiesOnDifferentMaps()
         {
-            //TODO: Run this test in a for loop, and figure out why garbage is ending up in the Entities list on cleanup.
-            await using var pairTracker = await PoolManager.GetServerClient(new PoolSettings{NoClient = true, Dirty = true, Destructive = true});
+            await using var pairTracker = await PoolManager.GetServerClient(new PoolSettings{NoClient = true, Destructive = true});
             var server = pairTracker.Pair.Server;
 
-            var mapManager = server.ResolveDependency<IMapManager>();
-            var entityMan = server.ResolveDependency<IEntityManager>();
-            var prototypeMan = server.ResolveDependency<IPrototypeManager>();
-            var tileDefinitionManager = server.ResolveDependency<ITileDefinitionManager>();
+            IEntityManager entityMan = null;
+            var cfg = server.ResolveDependency<IConfigurationManager>();
+            await server.WaitPost(() => cfg.SetCVar(CCVars.DisableGridFill, true));
 
-            var prototypes = new List<EntityPrototype>();
-            IMapGrid grid = default;
-            EntityUid testEntity;
-
-            //Build up test environment
             await server.WaitPost(() =>
             {
-                // Create a one tile grid to stave off the grid 0 monsters
-                var mapId = mapManager.CreateMap();
-
-                mapManager.AddUninitializedMap(mapId);
-
-                grid = mapManager.CreateGrid(mapId);
-
-                var tileDefinition = tileDefinitionManager["underplating"];
-                var tile = new Tile(tileDefinition.TileId);
-                var coordinates = grid.ToCoordinates();
-
-                grid.SetTile(coordinates, tile);
-
-                mapManager.DoMapInitialize(mapId);
+                entityMan = IoCManager.Resolve<IEntityManager>();
+                var mapManager = IoCManager.Resolve<IMapManager>();
+                var prototypeMan = IoCManager.Resolve<IPrototypeManager>();
+                var protoIds = prototypeMan
+                    .EnumeratePrototypes<EntityPrototype>()
+                    .Where(p=>!p.Abstract)
+                    .Select(p => p.ID)
+                    .ToList();
+                foreach (var protoId in protoIds)
+                {
+                    var mapId = mapManager.CreateMap();
+                    var grid = mapManager.CreateGrid(mapId);
+                    var coord = new EntityCoordinates(grid.Owner, 0, 0);
+                    entityMan.SpawnEntity(protoId, coord);
+                }
             });
 
-            await server.WaitRunTicks(5);
+            await server.WaitRunTicks(15);
 
-            await server.WaitAssertion(() =>
+            await server.WaitPost(() =>
             {
-                var testLocation = grid.ToCoordinates();
-
-                //Generate list of non-abstract prototypes to test
-                foreach (var prototype in prototypeMan.EnumeratePrototypes<EntityPrototype>())
+                var entityMetas = entityMan.EntityQuery<MetaDataComponent>(true).ToList();
+                foreach (var meta in entityMetas)
                 {
-                    if (prototype.Abstract)
-                    {
-                        continue;
-                    }
-
-                    prototypes.Add(prototype);
+                    if(!meta.EntityDeleted)
+                        entityMan.DeleteEntity(meta.Owner);
                 }
 
-                Assert.Multiple(() =>
-                {
-                    //Iterate list of prototypes to spawn
-                    foreach (var prototype in prototypes)
-                    {
-                        Assert.DoesNotThrow(() =>
-                            {
-                                Logger.LogS(LogLevel.Debug, "EntityTest", $"Testing: {prototype.ID}");
-                                testEntity = entityMan.SpawnEntity(prototype.ID, testLocation);
-                                server.RunTicks(1);
-                                if(!entityMan.Deleted(testEntity))
-                                    entityMan.DeleteEntity(testEntity);
-                            }, "Entity '{0}' threw an exception.",
-                            prototype.ID);
-                    }
-                });
+                Assert.That(entityMan.EntityCount, Is.Zero);
             });
 
+            await server.WaitPost(() => cfg.SetCVar(CCVars.DisableGridFill, false));
+            await pairTracker.CleanReturnAsync();
+        }
+
+        [Test]
+        public async Task SpawnAndDeleteAllEntitiesInTheSameSpot()
+        {
+            await using var pairTracker = await PoolManager.GetServerClient(new PoolSettings{NoClient = true, Destructive = true});
+            var server = pairTracker.Pair.Server;
+            var map = await PoolManager.CreateTestMap(pairTracker);
+            IEntityManager entityMan = null;
+
+            var cfg = server.ResolveDependency<IConfigurationManager>();
+            await server.WaitPost(() => cfg.SetCVar(CCVars.DisableGridFill, true));
+
+            await server.WaitPost(() =>
+            {
+                entityMan = IoCManager.Resolve<IEntityManager>();
+
+                var prototypeMan = IoCManager.Resolve<IPrototypeManager>();
+                var protoIds = prototypeMan
+                    .EnumeratePrototypes<EntityPrototype>()
+                    .Where(p=>!p.Abstract)
+                    .Select(p => p.ID)
+                    .ToList();
+                foreach (var protoId in protoIds)
+                {
+                    entityMan.SpawnEntity(protoId, map.GridCoords);
+                }
+            });
+            await server.WaitRunTicks(15);
+            await server.WaitPost(() =>
+            {
+                var entityMetas = entityMan.EntityQuery<MetaDataComponent>(true).ToList();
+                foreach (var meta in entityMetas)
+                {
+                    if(!meta.EntityDeleted)
+                        entityMan.DeleteEntity(meta.Owner);
+                }
+
+                Assert.That(entityMan.EntityCount, Is.Zero);
+            });
+
+            await server.WaitPost(() => cfg.SetCVar(CCVars.DisableGridFill, false));
+            await pairTracker.CleanReturnAsync();
+        }
+
+        /// <summary>
+        ///     Variant of <see cref="SpawnAndDeleteAllEntitiesOnDifferentMaps"/> that also launches a client and dirties
+        ///     all components on every entity.
+        /// </summary>
+        [Test]
+        public async Task SpawnAndDirtyAllEntities()
+        {
+            await using var pairTracker = await PoolManager.GetServerClient(new PoolSettings { NoClient = false, Destructive = true });
+            var server = pairTracker.Pair.Server;
+            var client = pairTracker.Pair.Client;
+
+            var cfg = server.ResolveDependency<IConfigurationManager>();
+            var prototypeMan = server.ResolveDependency<IPrototypeManager>();
+            var mapManager = server.ResolveDependency<IMapManager>();
+            var sEntMan = server.ResolveDependency<IEntityManager>();
+
+            await server.WaitPost(() => cfg.SetCVar(CCVars.DisableGridFill, true));
+            Assert.That(cfg.GetCVar(CVars.NetPVS), Is.False);
+
+            var protoIds = prototypeMan
+                .EnumeratePrototypes<EntityPrototype>()
+                .Where(p => !p.Abstract)
+                .Select(p => p.ID)
+                .ToList();
+
+            // for whatever reason, stealth boxes are breaking this test. Surplus crates have a chance of spawning them.
+            // TODO fix whatever is going wrong here.
+            HashSet<string> ignored = new() {"GhostBox", "StealthBox", "CrateSyndicateSurplusBundle", "CrateSyndicateSuperSurplusBundle"};
+
+            await server.WaitPost(() =>
+            {
+                foreach (var protoId in protoIds)
+                {
+                    if (ignored.Contains(protoId))
+                        continue;
+
+                    var mapId = mapManager.CreateMap();
+                    var grid = mapManager.CreateGrid(mapId);
+                    var ent = sEntMan.SpawnEntity(protoId, new EntityCoordinates(grid.Owner, 0.5f, 0.5f));
+                    foreach (var (_, component) in sEntMan.GetNetComponents(ent))
+                    {
+                        sEntMan.Dirty(component);
+                    }
+                }
+            });
+
+            await PoolManager.RunTicksSync(pairTracker.Pair, 15);
+
+            // Make sure the client actually received the entities
+            // 500 is completely arbitrary. Note that the client & sever entity counts aren't expected to match.
+            Assert.That(client.ResolveDependency<IEntityManager>().EntityCount, Is.GreaterThan(500));
+
+            await server.WaitPost(() =>
+            {
+                var entityMetas = sEntMan.EntityQuery<MetaDataComponent>(true).ToList();
+                foreach (var meta in entityMetas)
+                {
+                    if (!meta.EntityDeleted)
+                        sEntMan.DeleteEntity(meta.Owner);
+                }
+
+                Assert.That(sEntMan.EntityCount, Is.Zero);
+            });
+
+            await server.WaitPost(() => cfg.SetCVar(CCVars.DisableGridFill, false));
             await pairTracker.CleanReturnAsync();
         }
 
@@ -99,8 +188,10 @@ namespace Content.IntegrationTests.Tests
                 "DebugExceptionExposeData",
                 "DebugExceptionInitialize",
                 "DebugExceptionStartup",
+                "GridFillComponent",
                 "Map", // We aren't testing a map entity in this test
                 "MapGrid",
+                "StationData", // errors when removed mid-round
                 "Actor", // We aren't testing actor components, those need their player session set.
             };
 
@@ -116,7 +207,7 @@ namespace Content.IntegrationTests.Tests
             var componentFactory = server.ResolveDependency<IComponentFactory>();
             var tileDefinitionManager = server.ResolveDependency<ITileDefinitionManager>();
 
-            IMapGrid grid = default;
+            MapGridComponent grid = default;
 
             await server.WaitPost(() =>
             {
@@ -127,7 +218,7 @@ namespace Content.IntegrationTests.Tests
 
                 grid = mapManager.CreateGrid(mapId);
 
-                var tileDefinition = tileDefinitionManager["underplating"];
+                var tileDefinition = tileDefinitionManager["UnderPlating"];
                 var tile = new Tile(tileDefinition.TileId);
                 var coordinates = grid.ToCoordinates();
 
@@ -193,8 +284,10 @@ namespace Content.IntegrationTests.Tests
                 "DebugExceptionExposeData",
                 "DebugExceptionInitialize",
                 "DebugExceptionStartup",
+                "GridFillComponent",
                 "Map", // We aren't testing a map entity in this test
                 "MapGrid",
+                "StationData", // errors when deleted mid-round
                 "Actor", // We aren't testing actor components, those need their player session set.
             };
 
@@ -210,7 +303,7 @@ namespace Content.IntegrationTests.Tests
             var componentFactory = server.ResolveDependency<IComponentFactory>();
             var tileDefinitionManager = server.ResolveDependency<ITileDefinitionManager>();
 
-            IMapGrid grid = default;
+            MapGridComponent grid = default;
 
             await server.WaitPost(() =>
             {
@@ -221,7 +314,7 @@ namespace Content.IntegrationTests.Tests
 
                 grid = mapManager.CreateGrid(mapId);
 
-                var tileDefinition = tileDefinitionManager["underplating"];
+                var tileDefinition = tileDefinitionManager["UnderPlating"];
                 var tile = new Tile(tileDefinition.TileId);
 
                 grid.SetTile(Vector2i.Zero, tile);

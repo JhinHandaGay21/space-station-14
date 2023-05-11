@@ -1,6 +1,4 @@
 ent-BaseMobSkeletonPerson = Урист МакСкелли
-    .desc = Жалкая кучка костей.
-    .suffix = { "" }
+    .desc = { ent-BaseMobOrganic.desc }
 ent-MobSkeletonPersonDummy = Урист МакСкелли
     .desc = Манекен-скелет, используемый при создании персонажа.
-    .suffix = { "" }

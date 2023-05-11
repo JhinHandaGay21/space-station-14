@@ -1,12 +1,8 @@
 ent-Window = окно
-    .desc = Не заляпай стекло, снизу тоже.
-    .suffix = { "" }
+    .desc = Смотри не заляпай.
 ent-WindowDirectional = направленное окно
-    .desc = Не заляпай стекло, снизу тоже.
-    .suffix = { "" }
-ent-WindowTintedDirectional = направленное тонированное стекло
-    .desc = Не заляпай стекло, снизу тоже.
-    .suffix = { "" }
+    .desc = Смотри не заляпай.
+ent-WindowTintedDirectional = направленное тонированное окно
+    .desc = Смотри не заляпай.
 ent-WindowFrostedDirectional = направленное матовое окно
-    .desc = Не заляпай стекло, снизу тоже.
-    .suffix = { "" }
+    .desc = Смотри не заляпай.

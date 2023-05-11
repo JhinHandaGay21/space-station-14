@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Robust.Shared.Prototypes;
+using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
 
 namespace Content.Shared.Construction
 {
@@ -12,7 +14,6 @@ namespace Content.Shared.Construction
         [DataField("edges")]
         private ConstructionGraphEdge[] _edges = Array.Empty<ConstructionGraphEdge>();
 
-        [ViewVariables]
         [DataField("node", required: true)]
         public string Name { get; private set; } = default!;
 
@@ -22,8 +23,7 @@ namespace Content.Shared.Construction
         [ViewVariables]
         public IReadOnlyList<IGraphAction> Actions => _actions;
 
-        [ViewVariables]
-        [DataField("entity")]
+        [DataField("entity", customTypeSerializer:typeof(PrototypeIdSerializer<EntityPrototype>))]
         public string? Entity { get; private set; }
 
         public ConstructionGraphEdge? GetEdge(string target)

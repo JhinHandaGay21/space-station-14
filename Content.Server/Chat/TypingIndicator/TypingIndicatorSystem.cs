@@ -10,6 +10,7 @@ namespace Content.Server.Chat.TypingIndicator;
 public sealed class TypingIndicatorSystem : SharedTypingIndicatorSystem
 {
     [Dependency] private readonly ActionBlockerSystem _actionBlocker = default!;
+    [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
 
     public override void Initialize()
     {
@@ -30,34 +31,34 @@ public sealed class TypingIndicatorSystem : SharedTypingIndicatorSystem
     private void OnPlayerDetached(EntityUid uid, TypingIndicatorComponent component, PlayerDetachedEvent args)
     {
         // player left entity body - hide typing indicator
-        SetTypingIndicatorEnabled(uid, false);
+        SetTypingIndicatorState(uid, TypingIndicatorState.None); // Corvax-TypingIndicator
     }
 
-    private void OnClientTypingChanged(TypingChangedEvent ev)
+    private void OnClientTypingChanged(TypingChangedEvent ev, EntitySessionEventArgs args)
     {
-        // make sure that this entity still exist
-        if (!Exists(ev.Uid))
+        var uid = args.SenderSession.AttachedEntity;
+        if (!Exists(uid))
         {
-            Logger.Warning($"Client attached entity {ev.Uid} from TypingChangedEvent doesn't exist on server.");
+            Logger.Warning($"Client {args.SenderSession} sent TypingChangedEvent without an attached entity.");
             return;
         }
 
         // check if this entity can speak or emote
-        if (!_actionBlocker.CanEmote(ev.Uid) && !_actionBlocker.CanSpeak(ev.Uid))
+        if (!_actionBlocker.CanEmote(uid.Value) && !_actionBlocker.CanSpeak(uid.Value))
         {
             // nah, make sure that typing indicator is disabled
-            SetTypingIndicatorEnabled(ev.Uid, false);
+            SetTypingIndicatorState(uid.Value, TypingIndicatorState.None); // Corvax-TypingIndicator
             return;
         }
 
-        SetTypingIndicatorEnabled(ev.Uid, ev.IsTyping);
+        SetTypingIndicatorState(uid.Value, ev.State); // Corvax-TypingIndicator
     }
 
-    private void SetTypingIndicatorEnabled(EntityUid uid, bool isEnabled, AppearanceComponent? appearance = null)
+    private void SetTypingIndicatorState(EntityUid uid, TypingIndicatorState state, AppearanceComponent? appearance = null) // Corvax-TypingIndicator
     {
-        if (!Resolve(uid, ref appearance, false))
-            return;
+        // if (!Resolve(uid, ref appearance, false)) // Corvax-TypingIndicator
+        //     return;
 
-        appearance.SetData(TypingIndicatorVisuals.IsTyping, isEnabled);
+        _appearance.SetData(uid, TypingIndicatorVisuals.State, state); // Corvax-TypingIndicator
     }
 }

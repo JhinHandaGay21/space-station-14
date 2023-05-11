@@ -2,11 +2,15 @@ using Content.Shared.Inventory;
 using Content.Shared.Movement.Components;
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization;
+using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Shared.Movement.Systems
 {
     public sealed class MovementSpeedModifierSystem : EntitySystem
     {
+        [Dependency] private readonly IGameTiming _timing = default!;
+
         public override void Initialize()
         {
             base.Initialize();
@@ -39,6 +43,9 @@ namespace Content.Shared.Movement.Systems
             if (!Resolve(uid, ref move, false))
                 return;
 
+            if (_timing.ApplyingState)
+                return;
+
             var ev = new RefreshMovementSpeedModifiersEvent();
             RaiseLocalEvent(uid, ev);
 
@@ -48,6 +55,17 @@ namespace Content.Shared.Movement.Systems
 
             move.WalkSpeedModifier = ev.WalkSpeedModifier;
             move.SprintSpeedModifier = ev.SprintSpeedModifier;
+            Dirty(move);
+        }
+
+        public void ChangeBaseSpeed(EntityUid uid, float baseWalkSpeed, float baseSprintSpeed, float acceleration, MovementSpeedModifierComponent? move = null)
+        {
+            if (!Resolve(uid, ref move, false))
+                return;
+
+            move.BaseWalkSpeed = baseWalkSpeed;
+            move.BaseSprintSpeed = baseSprintSpeed;
+            move.Acceleration = acceleration;
             Dirty(move);
         }
 

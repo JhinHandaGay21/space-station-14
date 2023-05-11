@@ -8,19 +8,33 @@
   - type: Transform
     noRot: True
   - type: Sprite
-    netsync: false
+    noRot: True
     sprite: Objects/Devices/pinpointer.rsi
     layers:
     - state: pinpointer
       map: ["enum.PinpointerLayers.Base"]
     - state: pinonnull
       map: ["enum.PinpointerLayers.Screen"]
+      shader: unshaded
+      visible: false
   - type: Item
     sprite: Objects/Devices/pinpointer.rsi
   - type: Pinpointer
   - type: Appearance
+  - type: GenericVisualizer
     visuals:
-    - type: PinpointerVisualizer
+      enum.PinpointerVisuals.IsActive:
+        enum.PinpointerLayers.Screen:
+          True: { visible: True }
+          False: { visible: False }
+      enum.PinpointerVisuals.TargetDistance:
+        enum.PinpointerLayers.Screen:
+          Unknown: { state: pinonnull }
+          Reached: { state: pinondirect }
+          Close: { state: pinonclose }
+          Medium: { state: pinonmedium }
+          Far: { state: pinonfar }
+  - type: AnimationPlayer
 
 - type: entity
   name: pinpointer

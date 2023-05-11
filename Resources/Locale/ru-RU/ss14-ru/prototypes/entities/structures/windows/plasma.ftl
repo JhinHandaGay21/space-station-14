@@ -1,6 +1,4 @@
-ent-PlasmaWindow = plasma window
+ent-PlasmaWindow = плазменное окно
     .desc = { ent-Window.desc }
-    .suffix = { "" }
-ent-PlasmaWindowDirectional = directional plasma window
-    .desc = Don't smudge up the glass down there.
-    .suffix = { "" }
+ent-PlasmaWindowDirectional = направленное плазменное окно
+    .desc = Смотри не заляпай.

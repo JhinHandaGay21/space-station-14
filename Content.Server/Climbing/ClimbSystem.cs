@@ -1,5 +1,6 @@
+using Content.Server.Body.Systems;
 using Content.Server.Climbing.Components;
-using Content.Server.DoAfter;
+using Content.Server.Interaction;
 using Content.Server.Popups;
 using Content.Server.Stunnable;
 using Content.Shared.ActionBlocker;
@@ -7,11 +8,13 @@ using Content.Shared.Body.Components;
 using Content.Shared.Body.Part;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Climbing;
+using Content.Shared.Climbing.Events;
 using Content.Shared.Damage;
+using Content.Shared.DoAfter;
 using Content.Shared.DragDrop;
 using Content.Shared.GameTicking;
+using Content.Shared.Hands.Components;
 using Content.Shared.IdentityManagement;
-using Content.Shared.Interaction;
 using Content.Shared.Physics;
 using Content.Shared.Popups;
 using Content.Shared.Verbs;
@@ -19,7 +22,10 @@ using JetBrains.Annotations;
 using Robust.Shared.GameStates;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Collision.Shapes;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Dynamics;
+using Robust.Shared.Physics.Events;
+using Robust.Shared.Physics.Systems;
 using Robust.Shared.Player;
 
 namespace Content.Server.Climbing;
@@ -28,12 +34,14 @@ namespace Content.Server.Climbing;
 public sealed class ClimbSystem : SharedClimbSystem
 {
     [Dependency] private readonly ActionBlockerSystem _actionBlockerSystem = default!;
+    [Dependency] private readonly BodySystem _bodySystem = default!;
     [Dependency] private readonly DamageableSystem _damageableSystem = default!;
-    [Dependency] private readonly DoAfterSystem _doAfterSystem = default!;
+    [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
     [Dependency] private readonly FixtureSystem _fixtureSystem = default!;
     [Dependency] private readonly PopupSystem _popupSystem = default!;
-    [Dependency] private readonly SharedInteractionSystem _interactionSystem = default!;
+    [Dependency] private readonly InteractionSystem _interactionSystem = default!;
     [Dependency] private readonly StunSystem _stunSystem = default!;
+    [Dependency] private readonly SharedPhysicsSystem _physics = default!;
 
     private const string ClimbingFixtureName = "climb";
     private const int ClimbingCollisionGroup = (int) (CollisionGroup.TableLayer | CollisionGroup.LowImpassable);
@@ -46,9 +54,9 @@ public sealed class ClimbSystem : SharedClimbSystem
 
         SubscribeLocalEvent<RoundRestartCleanupEvent>(Reset);
         SubscribeLocalEvent<ClimbableComponent, GetVerbsEvent<AlternativeVerb>>(AddClimbableVerb);
-        SubscribeLocalEvent<ClimbableComponent, DragDropEvent>(OnClimbableDragDrop);
+        SubscribeLocalEvent<ClimbableComponent, DragDropTargetEvent>(OnClimbableDragDrop);
 
-        SubscribeLocalEvent<ClimbingComponent, ClimbFinishedEvent>(OnClimbFinished);
+        SubscribeLocalEvent<ClimbingComponent, ClimbDoAfterEvent>(OnDoAfter);
         SubscribeLocalEvent<ClimbingComponent, EndCollideEvent>(OnClimbEndCollide);
         SubscribeLocalEvent<ClimbingComponent, BuckleChangeEvent>(OnBuckleChange);
         SubscribeLocalEvent<ClimbingComponent, ComponentGetState>(OnClimbingGetState);
@@ -56,20 +64,20 @@ public sealed class ClimbSystem : SharedClimbSystem
         SubscribeLocalEvent<GlassTableComponent, ClimbedOnEvent>(OnGlassClimbed);
     }
 
-    protected override void OnCanDragDropOn(EntityUid uid, SharedClimbableComponent component, CanDragDropOnEvent args)
+    protected override void OnCanDragDropOn(EntityUid uid, ClimbableComponent component, ref CanDropTargetEvent args)
     {
-        base.OnCanDragDropOn(uid, component, args);
+        base.OnCanDragDropOn(uid, component, ref args);
 
         if (!args.CanDrop)
             return;
 
         string reason;
         var canVault = args.User == args.Dragged
-            ? CanVault(component, args.User, args.Target, out reason)
-            : CanVault(component, args.User, args.Dragged, args.Target, out reason);
+            ? CanVault(component, args.User, uid, out reason)
+            : CanVault(component, args.User, args.Dragged, uid, out reason);
 
         if (!canVault)
-            _popupSystem.PopupEntity(reason, args.User, Filter.Entities(args.User));
+            _popupSystem.PopupEntity(reason, args.User, args.User);
 
         args.CanDrop = canVault;
         args.Handled = true;
@@ -86,54 +94,72 @@ public sealed class ClimbSystem : SharedClimbSystem
         // TODO VERBS ICON add a climbing icon?
         args.Verbs.Add(new AlternativeVerb
         {
-            Act = () => TryMoveEntity(component, args.User, args.User, args.Target),
+            Act = () => TryClimb(args.User, args.User, args.Target, component),
             Text = Loc.GetString("comp-climbable-verb-climb")
         });
     }
 
-    private void OnClimbableDragDrop(EntityUid uid, ClimbableComponent component, DragDropEvent args)
+    private void OnClimbableDragDrop(EntityUid uid, ClimbableComponent component, ref DragDropTargetEvent args)
     {
-        TryMoveEntity(component, args.User, args.Dragged, args.Target);
+        // definitely a better way to check if two entities are equal
+        // but don't have computer access and i have to do this without syntax
+        if (args.User != args.Dragged && !HasComp<HandsComponent>(args.User))
+            return;
+        TryClimb(args.User, args.Dragged, uid, component);
     }
 
-    private void TryMoveEntity(ClimbableComponent component, EntityUid user, EntityUid entityToMove,
-        EntityUid climbable)
+    public void TryClimb(EntityUid user,
+        EntityUid entityToMove,
+        EntityUid climbable,
+        ClimbableComponent? comp = null,
+        ClimbingComponent? climbing = null)
     {
-        if (!TryComp(entityToMove, out ClimbingComponent? climbingComponent) || climbingComponent.IsClimbing)
+        if (!Resolve(climbable, ref comp) || !Resolve(entityToMove, ref climbing))
             return;
 
-        _doAfterSystem.DoAfter(new DoAfterEventArgs(entityToMove, component.ClimbDelay, default, climbable)
+        // Note, IsClimbing does not mean a DoAfter is active, it means the target has already finished a DoAfter and
+        // is currently on top of something..
+        if (climbing.IsClimbing)
+            return;
+
+        var args = new DoAfterArgs(user, comp.ClimbDelay, new ClimbDoAfterEvent(), entityToMove, target: climbable, used: entityToMove)
         {
             BreakOnTargetMove = true,
             BreakOnUserMove = true,
-            BreakOnDamage = true,
-            BreakOnStun = true,
-            UserFinishedEvent = new ClimbFinishedEvent(user, climbable)
-        });
+            BreakOnDamage = true
+        };
+
+        _doAfterSystem.TryStartDoAfter(args);
     }
 
-    private void OnClimbFinished(EntityUid uid, ClimbingComponent climbing, ClimbFinishedEvent args)
+    private void OnDoAfter(EntityUid uid, ClimbingComponent component, ClimbDoAfterEvent args)
     {
-        Climb(uid, args.User, args.Climbable, climbing: climbing);
+        if (args.Handled || args.Cancelled || args.Args.Target == null || args.Args.Used == null)
+            return;
+
+        Climb(uid, args.Args.User, args.Args.Used.Value, args.Args.Target.Value, climbing: component);
+
+        args.Handled = true;
     }
 
-    private void Climb(EntityUid uid, EntityUid user, EntityUid climbable, bool silent = false, ClimbingComponent? climbing = null,
+    private void Climb(EntityUid uid, EntityUid user, EntityUid instigator, EntityUid climbable, bool silent = false, ClimbingComponent? climbing = null,
         PhysicsComponent? physics = null, FixturesComponent? fixtures = null)
     {
         if (!Resolve(uid, ref climbing, ref physics, ref fixtures, false))
             return;
 
-        if (!ReplaceFixtures(climbing, physics, fixtures))
+        if (!ReplaceFixtures(climbing, fixtures))
             return;
 
         climbing.IsClimbing = true;
+        Dirty(climbing);
 
         MoveEntityToward(uid, climbable, physics, climbing);
         // we may potentially need additional logic since we're forcing a player onto a climbable
         // there's also the cases where the user might collide with the person they are forcing onto the climbable that i haven't accounted for
 
         RaiseLocalEvent(uid, new StartClimbEvent(climbable), false);
-        RaiseLocalEvent(climbable, new ClimbedOnEvent(uid), false);
+        RaiseLocalEvent(climbable, new ClimbedOnEvent(uid, user), false);
 
         if (silent)
             return;
@@ -162,8 +188,10 @@ public sealed class ClimbSystem : SharedClimbSystem
     /// Replaces the current fixtures with non-climbing collidable versions so that climb end can be detected
     /// </summary>
     /// <returns>Returns whether adding the new fixtures was successful</returns>
-    private bool ReplaceFixtures(ClimbingComponent climbingComp, PhysicsComponent physicsComp, FixturesComponent fixturesComp)
+    private bool ReplaceFixtures(ClimbingComponent climbingComp, FixturesComponent fixturesComp)
     {
+        var uid = climbingComp.Owner;
+
         // Swap fixtures
         foreach (var (name, fixture) in fixturesComp.Fixtures)
         {
@@ -173,17 +201,25 @@ public sealed class ClimbSystem : SharedClimbSystem
                 continue;
 
             climbingComp.DisabledFixtureMasks.Add(fixture.ID, fixture.CollisionMask & ClimbingCollisionGroup);
-            fixture.CollisionMask &= ~ClimbingCollisionGroup;
+            _physics.SetCollisionMask(uid, fixture, fixture.CollisionMask & ~ClimbingCollisionGroup, fixturesComp);
         }
 
-        if (!_fixtureSystem.TryCreateFixture(physicsComp,
-            new Fixture(new PhysShapeCircle { Radius = 0.35f }, (int) CollisionGroup.None, ClimbingCollisionGroup, false)
-                {ID = ClimbingFixtureName}, manager: fixturesComp))
+        if (!_fixtureSystem.TryCreateFixture(
+                uid,
+                new PhysShapeCircle(0.35f),
+                ClimbingFixtureName,
+                collisionLayer: (int) CollisionGroup.None,
+                collisionMask: ClimbingCollisionGroup,
+                hard: false,
+                manager: fixturesComp))
+        {
             return false;
+        }
+
         return true;
     }
 
-    private void OnClimbEndCollide(EntityUid uid, ClimbingComponent component, EndCollideEvent args)
+    private void OnClimbEndCollide(EntityUid uid, ClimbingComponent component, ref EndCollideEvent args)
     {
         if (args.OurFixture.ID != ClimbingFixtureName
             || !component.IsClimbing
@@ -195,7 +231,7 @@ public sealed class ClimbSystem : SharedClimbSystem
             if (fixture == args.OtherFixture)
                 continue;
             // If still colliding with a climbable, do not stop climbing
-            if (HasComp<ClimbableComponent>(fixture.Body.Owner))
+            if (HasComp<ClimbableComponent>(args.OtherEntity))
                 return;
         }
 
@@ -210,8 +246,11 @@ public sealed class ClimbSystem : SharedClimbSystem
         foreach (var (name, fixtureMask) in climbing.DisabledFixtureMasks)
         {
             if (!fixtures.Fixtures.TryGetValue(name, out var fixture))
+            {
                 continue;
-            fixture.CollisionMask |= fixtureMask;
+            }
+
+            _physics.SetCollisionMask(uid, fixture, fixture.CollisionMask | fixtureMask, fixtures);
         }
         climbing.DisabledFixtureMasks.Clear();
 
@@ -226,6 +265,9 @@ public sealed class ClimbSystem : SharedClimbSystem
 
         climbing.IsClimbing = false;
         climbing.OwnerIsTransitioning = false;
+        var ev = new EndClimbEvent();
+        RaiseLocalEvent(uid, ref ev);
+        Dirty(climbing);
     }
 
     /// <summary>
@@ -236,7 +278,7 @@ public sealed class ClimbSystem : SharedClimbSystem
     /// <param name="target">The object that is being vaulted</param>
     /// <param name="reason">The reason why it cant be dropped</param>
     /// <returns></returns>
-    private bool CanVault(SharedClimbableComponent component, EntityUid user, EntityUid target, out string reason)
+    private bool CanVault(ClimbableComponent component, EntityUid user, EntityUid target, out string reason)
     {
         if (!_actionBlockerSystem.CanInteract(user, target))
         {
@@ -245,9 +287,9 @@ public sealed class ClimbSystem : SharedClimbSystem
         }
 
         if (!HasComp<ClimbingComponent>(user)
-            || !TryComp(user, out SharedBodyComponent? body)
-            || !body.HasPartOfType(BodyPartType.Leg)
-            || !body.HasPartOfType(BodyPartType.Foot))
+            || !TryComp(user, out BodyComponent? body)
+            || !_bodySystem.BodyHasChildOfType(user, BodyPartType.Leg, body)
+            || !_bodySystem.BodyHasChildOfType(user, BodyPartType.Foot, body))
         {
             reason = Loc.GetString("comp-climbable-cant-climb");
             return false;
@@ -272,7 +314,7 @@ public sealed class ClimbSystem : SharedClimbSystem
     /// <param name="target">The object that is being vaulted onto</param>
     /// <param name="reason">The reason why it cant be dropped</param>
     /// <returns></returns>
-    private bool CanVault(SharedClimbableComponent component, EntityUid user, EntityUid dragged, EntityUid target,
+    private bool CanVault(ClimbableComponent component, EntityUid user, EntityUid dragged, EntityUid target,
         out string reason)
     {
         if (!_actionBlockerSystem.CanInteract(user, dragged) || !_actionBlockerSystem.CanInteract(user, target))
@@ -302,10 +344,10 @@ public sealed class ClimbSystem : SharedClimbSystem
 
     public void ForciblySetClimbing(EntityUid uid, EntityUid climbable, ClimbingComponent? component = null)
     {
-        Climb(uid, uid, climbable, true, component);
+        Climb(uid, uid, uid, climbable, true, component);
     }
 
-    private void OnBuckleChange(EntityUid uid, ClimbingComponent component, BuckleChangeEvent args)
+    private void OnBuckleChange(EntityUid uid, ClimbingComponent component, ref BuckleChangeEvent args)
     {
         if (!args.Buckling)
             return;
@@ -314,7 +356,7 @@ public sealed class ClimbSystem : SharedClimbSystem
 
     private static void OnClimbingGetState(EntityUid uid, ClimbingComponent component, ref ComponentGetState args)
     {
-        args.State = new SharedClimbingComponent.ClimbModeComponentState(component.IsClimbing, component.OwnerIsTransitioning);
+        args.State = new ClimbingComponent.ClimbModeComponentState(component.IsClimbing, component.OwnerIsTransitioning);
     }
 
     private void OnGlassClimbed(EntityUid uid, GlassTableComponent component, ClimbedOnEvent args)
@@ -322,14 +364,14 @@ public sealed class ClimbSystem : SharedClimbSystem
         if (TryComp<PhysicsComponent>(args.Climber, out var physics) && physics.Mass <= component.MassLimit)
             return;
 
-        _damageableSystem.TryChangeDamage(args.Climber, component.ClimberDamage);
-        _damageableSystem.TryChangeDamage(uid, component.TableDamage);
+        _damageableSystem.TryChangeDamage(args.Climber, component.ClimberDamage, origin: args.Climber);
+        _damageableSystem.TryChangeDamage(uid, component.TableDamage, origin: args.Climber);
         _stunSystem.TryParalyze(args.Climber, TimeSpan.FromSeconds(component.StunTime), true);
 
         // Not shown to the user, since they already get a 'you climb on the glass table' popup
         _popupSystem.PopupEntity(
             Loc.GetString("glass-table-shattered-others", ("table", uid), ("climber", Identity.Entity(args.Climber, EntityManager))), args.Climber,
-            Filter.Pvs(uid).RemoveWhereAttachedEntity(puid => puid == args.Climber));
+            Filter.PvsExcept(args.Climber), true);
     }
 
     /// <summary>
@@ -356,16 +398,18 @@ public sealed class ClimbSystem : SharedClimbSystem
         // Since there are bodies with different masses:
         // mass * 10 seems enough to move entity
         // instead of launching cats like rockets against the walls with constant impulse value.
-        physics.ApplyLinearImpulse((to - from).Normalized * velocity * physics.Mass * 10);
-        physics.BodyType = BodyType.Dynamic;
+        _physics.ApplyLinearImpulse(uid, (to - from).Normalized * velocity * physics.Mass * 10, body: physics);
+        _physics.SetBodyType(uid, BodyType.Dynamic, body: physics);
         climbing.OwnerIsTransitioning = true;
         _actionBlockerSystem.UpdateCanMove(uid);
 
         // Transition back to KinematicController after BufferTime
-        climbing.Owner.SpawnTimer((int) (SharedClimbingComponent.BufferTime * 1000), () =>
+        climbing.Owner.SpawnTimer((int) (ClimbingComponent.BufferTime * 1000), () =>
         {
-            if (climbing.Deleted) return;
-            physics.BodyType = BodyType.KinematicController;
+            if (climbing.Deleted)
+                return;
+
+            _physics.SetBodyType(uid, BodyType.KinematicController);
             climbing.OwnerIsTransitioning = false;
             _actionBlockerSystem.UpdateCanMove(uid);
         });
@@ -377,10 +421,13 @@ public sealed class ClimbSystem : SharedClimbSystem
         {
             if (!TryComp<PhysicsComponent>(uid, out var physicsComp)
                 || !TryComp<FixturesComponent>(uid, out var fixturesComp))
+            {
                 continue;
+            }
+
             foreach (var fixture in fixtures)
             {
-                _fixtureSystem.DestroyFixture(physicsComp, fixture, true, fixturesComp);
+                _fixtureSystem.DestroyFixture(uid, fixture, body: physicsComp, manager: fixturesComp);
             }
         }
 
@@ -391,18 +438,7 @@ public sealed class ClimbSystem : SharedClimbSystem
     {
         _fixtureRemoveQueue.Clear();
     }
-}
 
-internal sealed class ClimbFinishedEvent : EntityEventArgs
-{
-    public ClimbFinishedEvent(EntityUid user, EntityUid climbable)
-    {
-        User = user;
-        Climbable = climbable;
-    }
-
-    public EntityUid User { get; }
-    public EntityUid Climbable { get; }
 }
 
 /// <summary>
@@ -411,10 +447,12 @@ internal sealed class ClimbFinishedEvent : EntityEventArgs
 public sealed class ClimbedOnEvent : EntityEventArgs
 {
     public EntityUid Climber;
+    public EntityUid Instigator;
 
-    public ClimbedOnEvent(EntityUid climber)
+    public ClimbedOnEvent(EntityUid climber, EntityUid instigator)
     {
         Climber = climber;
+        Instigator = instigator;
     }
 }
 

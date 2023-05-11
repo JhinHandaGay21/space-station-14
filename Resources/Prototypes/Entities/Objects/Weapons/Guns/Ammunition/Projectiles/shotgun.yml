@@ -10,7 +10,7 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 5  # Should have the same or less damage than a regular pellet
+        Piercing: 8  # Should have the same or less damage than a regular pellet
 
 - type: entity
   id: PelletShotgunBeanbag
@@ -26,7 +26,7 @@
       types:
         Blunt: 10
   - type: StaminaDamageOnCollide
-    damage: 55
+    damage: 55 # 2 hits to stun
 
 - type: entity
   id: PelletShotgun
@@ -40,7 +40,7 @@
   - type: Projectile
     damage:
       types:
-        Piercing: 5
+        Piercing: 12
 
 - type: entity
   id: PelletShotgunIncendiary
@@ -100,6 +100,7 @@
     solution: ammo
   - type: SolutionInjectOnCollide
     transferAmount: 15
+    blockSlots: NONE #tranquillizer darts shouldn't be blocked by a mask
   - type: InjectableSolution
     solution: ammo
 
@@ -107,19 +108,43 @@
   id: PelletShotgunFlare
   name: pellet (.50 flare)
   noSpawn: true
-  parent: BaseBullet
   components:
+  - type: CollisionWake
+  - type: TileFrictionModifier
+    modifier: 0.5
+  - type: Physics
+    bodyType: Dynamic
+    fixedRotation: false
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.25,-0.25,0.25,0.25"
+        density: 20
+        mask:
+          - ItemMask
+        restitution: 0.3
+        friction: 0.2
   - type: Sprite
     sprite: Objects/Weapons/Guns/Projectiles/projectiles2.rsi
     state: buckshot-flare
-  - type: Projectile
-    damage:
-      groups:
-        Burn: 14
+  - type: IgnitionSource
+    temperature: 1000
+  - type: TimedDespawn
+    lifetime: 240
+  - type: AmbientSound
+    enabled: true
+    volume: 0
+    range: 7
+    sound:
+      path: /Audio/Items/Flare/flare_burn.ogg
+      params:
+        loop: true
+  - type: IgniteOnCollide
+    fireStacks: 1
   - type: PointLight
     enabled: true
     color: "#FF8080"
     radius: 15.0
     energy: 9.0
-  - type: IgniteOnCollide
-    fireStacks: 4

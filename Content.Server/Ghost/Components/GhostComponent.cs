@@ -21,8 +21,8 @@ namespace Content.Server.Ghost.Components
         public InstantAction Action = new()
         {
             UseDelay = TimeSpan.FromSeconds(120),
-            Icon = new SpriteSpecifier.Texture(new ResourcePath("Interface/Actions/scream.png")),
-            Name = "action-name-boo",
+            Icon = new SpriteSpecifier.Texture(new ("Interface/Actions/scream.png")),
+            DisplayName = "action-name-boo",
             Description = "action-description-boo",
             CheckCanInteract = false,
             Event = new BooActionEvent(),

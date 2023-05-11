@@ -43,7 +43,7 @@ namespace Content.Client.Changelog
             NewChangelogEntries = false;
             NewChangelogEntriesChanged?.Invoke();
 
-            using var sw = _resource.UserData.OpenWriteText(new ResourcePath($"/changelog_last_seen_{_configManager.GetCVar(CCVars.ServerId)}"));
+            using var sw = _resource.UserData.OpenWriteText(new ($"/changelog_last_seen_{_configManager.GetCVar(CCVars.ServerId)}"));
 
             sw.Write(MaxId.ToString());
         }
@@ -60,7 +60,7 @@ namespace Content.Client.Changelog
 
             MaxId = changelog.Max(c => c.Id);
 
-            var path = new ResourcePath($"/changelog_last_seen_{_configManager.GetCVar(CCVars.ServerId)}");
+            var path = new ResPath($"/changelog_last_seen_{_configManager.GetCVar(CCVars.ServerId)}");
             if(_resource.UserData.TryReadAllText(path, out var lastReadIdText))
             {
                 LastReadId = int.Parse(lastReadIdText);
@@ -71,30 +71,24 @@ namespace Content.Client.Changelog
             NewChangelogEntriesChanged?.Invoke();
         }
 
+        // Corvax-MultiChangelog-Start
         public async Task<List<ChangelogEntry>> LoadChangelog()
         {
-            var paths = new List<ResourcePath>()
-            {
-                new ResourcePath("/Changelog/Changelog.yml"),
-                new ResourcePath("/Changelog/ChangelogSyndie.yml")
-            };
+            var paths = _resource.ContentFindFiles("/Changelog/")
+                .Where(filePath => filePath.Extension == "yml")
+                .ToArray();
 
             var result = new List<ChangelogEntry>();
             foreach (var path in paths)
             {
-                if (!_resource.ContentFileExists(path))
-                {
-                    continue;
-                }
-
                 var changelog = await LoadChangelogFile(path);
                 result = result.Union(changelog).ToList();
             }
-
             return result.OrderBy(x => x.Time).ToList();
         }
+        // Corvax-MultiChangelog-End
 
-        private Task<List<ChangelogEntry>> LoadChangelogFile(ResourcePath path)
+        private Task<List<ChangelogEntry>> LoadChangelogFile(ResPath path)
         {
             return Task.Run(() =>
             {
@@ -104,7 +98,7 @@ namespace Content.Client.Changelog
                     return new List<ChangelogEntry>();
 
                 var node = (MappingDataNode)yamlData.Documents[0].RootNode.ToDataNode();
-                return _serialization.Read<List<ChangelogEntry>>(node["Entries"]);
+                return _serialization.Read<List<ChangelogEntry>>(node["Entries"], notNullableOverride: true);
             });
         }
 

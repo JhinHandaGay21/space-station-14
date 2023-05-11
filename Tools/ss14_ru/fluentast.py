@@ -84,16 +84,14 @@ class FluentSerializedMessage:
             else:
                 attributes.append(FluentAstAttribute('desc', '{ "" }'))
 
-        if len(list(filter(lambda attr: attr.id == 'suffix', attributes))) == 0:
-            attributes.append(FluentAstAttribute('suffix', '{ "" }'))
-
         message = f'{cls.get_key(id, raw_key)} = {cls.get_value(value, parent_id)}\n'
 
         if attributes and len(attributes):
             full_message = message
 
             for attr in attributes:
-                full_message = cls.add_attr(full_message, attr.id, attr.value, raw_key=raw_key)
+                fluent_newlines = attr.value.replace("\n", "\n        ");
+                full_message = cls.add_attr(full_message, attr.id, fluent_newlines, raw_key=raw_key)
 
             desc_attr = py_.find(attributes, lambda a: a.id == 'desc')
             if not desc_attr and parent_id:

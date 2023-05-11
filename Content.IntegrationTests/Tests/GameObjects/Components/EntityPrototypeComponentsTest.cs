@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,12 +24,12 @@ namespace Content.IntegrationTests.Tests.GameObjects.Components
             var client = pairTracker.Pair.Client;
 
             var sResourceManager = server.ResolveDependency<IResourceManager>();
-            var prototypePath = new ResourcePath("/Prototypes/");
+            var prototypePath = new ResPath("/Prototypes/");
             var paths = sResourceManager.ContentFindFiles(prototypePath)
                 .ToList()
                 .AsParallel()
                 .Where(filePath => filePath.Extension == "yml" &&
-                                   !filePath.Filename.StartsWith("."))
+                                   !filePath.Filename.StartsWith(".", StringComparison.Ordinal))
                 .ToArray();
 
             var cComponentFactory = client.ResolveDependency<IComponentFactory>();

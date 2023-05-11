@@ -1,9 +1,10 @@
-using System.Threading.Tasks;
 using Content.Shared.Construction.Components;
 using Content.Shared.Containers.ItemSlots;
+using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
 using Content.Shared.Pulling.Components;
 using Content.Shared.Tools.Components;
+using Robust.Shared.Serialization;
 
 namespace Content.Shared.Construction.EntitySystems;
 
@@ -37,6 +38,17 @@ public abstract class SharedAnchorableSystem : EntitySystem
         ToolComponent? usingTool = null)
     {
         // Thanks tool system.
-        return;
+
+        // TODO tool system is fixed now, make this actually shared.
+    }
+
+    [Serializable, NetSerializable]
+    protected sealed class TryUnanchorCompletedEvent : SimpleDoAfterEvent
+    {
+    }
+
+    [Serializable, NetSerializable]
+    protected sealed class TryAnchorCompletedEvent : SimpleDoAfterEvent
+    {
     }
 }

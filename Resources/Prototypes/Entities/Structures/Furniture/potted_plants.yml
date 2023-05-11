@@ -12,19 +12,24 @@
     bodyType: Dynamic
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeCircle
-        radius: 0.1
-      mass: 25
-      mask:
-      - Impassable
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.1
+        density: 190
+        mask:
+        - Impassable
   - type: Sprite
     drawdepth: Overdoors
     offset: "0.0,0.3"
     sprite: Structures/Furniture/potted_plants.rsi
+    noRot: true
   - type: PottedPlantHide
   - type: SecretStash
-    secretPartName: the plant
+    secretPartName: secret-stash-part-plant
+  - type: ContainerContainer
+    containers:
+      stash: !type:ContainerSlot {}
   - type: Pullable
   - type: Damageable
     damageContainer: Inorganic # The pot. Not the plant. Or is it plastic?
@@ -225,7 +230,7 @@
   id: PottedPlantRD #PottedPlant25
   parent: PottedPlantBase
   name: "RD's potted plant"
-  description: "A gift from the botanical staff, presented after the RD's reassignment. There's a tag on it that says \"Y'all come back now, y'hear?\" It doesn't look very healthy..."
+  description: "A gift from the botanical staff, presented after the RD's reassignment. There's a tag on it that says \"Y'all come back now, y'hear?\" It doesn't look very healthy..." # Corvax-Localization: Remove newline
   components:
   - type: Sprite
     state: plant-25

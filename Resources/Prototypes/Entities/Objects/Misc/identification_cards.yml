@@ -15,6 +15,7 @@
     heldPrefix: default
   - type: Access
   - type: IdCard
+  - type: StationRecordKeyStorage
   - type: Tag
     tags:
     - DoorBumpOpener
@@ -59,6 +60,18 @@
 
 - type: entity
   parent: PassengerIDCard
+  id: ResearchAssistantIDCard
+  name: research assistant ID card
+  components:
+  - type: PresetIdCard
+    job: ResearchAssistant
+  - type: Sprite
+    layers:
+    - state: default
+    - state: idintern-sci
+
+- type: entity
+  parent: PassengerIDCard
   id: SecurityCadetIDCard
   name: security cadet ID card
   components:
@@ -94,6 +107,10 @@
     heldPrefix: gold
   - type: PresetIdCard
     job: Captain
+  - type: Tag
+    tags:
+      - WhitelistChameleon
+      - HighRiskItem
 
 - type: entity
   parent: IDCardStandard
@@ -142,6 +159,18 @@
     - state: idmedicaldoctor
   - type: PresetIdCard
     job: MedicalDoctor
+
+- type: entity
+  parent: IDCardStandard
+  id: ParamedicIDCard
+  name: paramedic ID card
+  components:
+  - type: Sprite
+    layers:
+    - state: default
+    - state: idparamedic
+  - type: PresetIdCard
+    job: Paramedic
 
 - type: entity
   parent: IDCardStandard
@@ -383,6 +412,16 @@
 
 - type: entity
   parent: IDCardStandard
+  id: BrigmedicIDCard
+  name: brigmedic ID card
+  components:
+  - type: Sprite
+    layers:
+    - state: default
+    - state: idbrigmedic
+
+- type: entity
+  parent: IDCardStandard
   id: CentcomIDCard
   name: command officer ID card
   components:
@@ -495,8 +534,8 @@
   components:
   - type: Sprite
     layers:
-    - state: idpsychologist
     - state: default
+    - state: idpsychologist
   - type: PresetIdCard
     job: Psychologist
 
@@ -507,8 +546,8 @@
   components:
   - type: Sprite
     layers:
-    - state: idreporter
     - state: default
+    - state: idreporter
   - type: PresetIdCard
     job: Reporter
 
@@ -526,12 +565,51 @@
 
 - type: entity
   parent: IDCardStandard
+  id: ZookeeperIDCard
+  name: zookeeper ID card
+  components:
+  - type: Sprite
+    layers:
+    - state: default
+    - state: idzookeeper
+  - type: PresetIdCard
+    job: Zookeeper
+
+- type: entity
+  parent: IDCardStandard
   id: DetectiveIDCard
   name: detective ID card
   components:
   - type: Sprite
     layers:
-    - state: iddetective
     - state: default
+    - state: iddetective
   - type: PresetIdCard
     job: Detective
+
+- type: entity
+  parent: CentcomIDCard
+  id: CBURNIDcard
+  name: CBURN ID card
+  components:
+  - type: Sprite
+    layers:
+    - state: gold
+    - state: idcentcom
+  - type: Item
+    heldPrefix: gold
+
+
+- type: entity
+  parent: IDCardStandard
+  id: CluwneIDCard
+  name: cluwne ID card
+  suffix: Unremoveable
+  components:
+  - type: Sprite
+    layers:
+    - state: default
+    - state: idcluwne
+  - type: IdCard
+    jobTitle: Cluwne
+  - type: Unremoveable

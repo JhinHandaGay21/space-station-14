@@ -1,10 +1,16 @@
 ﻿- type: job
   id: SecurityCadet
   name: job-name-cadet
+  description: job-description-cadet
+  playTimeTracker: JobSecurityCadet
+  requirements:
+    - !type:OverallPlaytimeRequirement
+      time: 36000 # Corvax-RoleTime
+    - !type:DepartmentTimeRequirement
+      department: Security
+      time: 72000 # Corvax-RoleTime
+      inverted: true # stop playing intern if you're good at security!
   startingGear: SecurityCadetGear
-  departments:
-  - Civilian
-  - Security
   icon: "SecurityCadet"
   supervisors: job-supervisors-security
   canBeAntag: false
@@ -16,9 +22,9 @@
 - type: startingGear
   id: SecurityCadetGear
   equipment:
-    jumpsuit: ClothingUniformJumpsuitColorRed
+    jumpsuit: ClothingUniformJumpsuitSecGrey # Corvax-Resprite
     back: ClothingBackpackSecurityFilled
-    shoes: ClothingShoesBootsJack
+    shoes: ClothingShoesBootsJackSec # Corvax-Resprite
     id: SecurityCadetPDA
     ears: ClothingHeadsetSecurity
   innerclothingskirt: ClothingUniformJumpskirtColorRed

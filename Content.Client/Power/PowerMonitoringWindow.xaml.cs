@@ -28,7 +28,8 @@ public sealed partial class PowerMonitoringWindow : DefaultWindow, IComputerWind
     public PowerMonitoringWindow()
     {
         RobustXamlLoader.Load(this);
-        SetSize = MinSize = (300, 450);
+        SetSize = (500, 450); // Corvax-Resize
+        MinSize = (300, 450); // Corvax-Resize
         IoCManager.InjectDependencies(this);
         MasterTabContainer.SetTabTitle(0, Loc.GetString("power-monitoring-window-tab-sources"));
         MasterTabContainer.SetTabTitle(1, Loc.GetString("power-monitoring-window-tab-loads"));
@@ -80,6 +81,6 @@ public sealed partial class PowerMonitoringWindow : DefaultWindow, IComputerWind
 [UsedImplicitly]
 public sealed class PowerMonitoringConsoleBoundUserInterface : ComputerBoundUserInterface<PowerMonitoringWindow, PowerMonitoringConsoleBoundInterfaceState>
 {
-    public PowerMonitoringConsoleBoundUserInterface(ClientUserInterfaceComponent owner, object uiKey) : base(owner, uiKey) {}
+    public PowerMonitoringConsoleBoundUserInterface(ClientUserInterfaceComponent owner, Enum uiKey) : base(owner, uiKey) {}
 }
 

@@ -3,11 +3,17 @@
 - type: job
   id: ChiefMedicalOfficer
   name: job-name-cmo
+  description: job-description-cmo
+  playTimeTracker: JobChiefMedicalOfficer
+  requirements:
+    - !type:RoleTimeRequirement # Corvax-RoleTime
+      role: JobChemist
+      time: 18000
+    - !type:DepartmentTimeRequirement
+      department: Medical
+      time: 54000 # Corvax-RoleTime
   weight: 10
   startingGear: CMOGear
-  departments:
-  - Command
-  - Medical
   icon: "ChiefMedicalOfficer"
   requireAdminNotify: true
   supervisors: job-supervisors-captain
@@ -23,12 +29,12 @@
   id: CMOGear
   equipment:
     jumpsuit: ClothingUniformJumpsuitCMO
-    back: ClothingBackpackMedicalFilled
+    back: ClothingBackpackCMOFilled
     shoes: ClothingShoesColorBrown
     outerClothing: ClothingOuterCoatLabCmo
     id: CMOPDA
-    ears: ClothingHeadsetAltMedical
+    ears: ClothingHeadsetCMO
     belt: ClothingBeltMedicalFilled
   innerclothingskirt: ClothingUniformJumpskirtCMO
-  satchel: ClothingBackpackSatchelMedicalFilled
-  duffelbag: ClothingBackpackDuffelMedicalFilled
+  satchel: ClothingBackpackSatchelCMOFilled
+  duffelbag: ClothingBackpackDuffelCMOFilled

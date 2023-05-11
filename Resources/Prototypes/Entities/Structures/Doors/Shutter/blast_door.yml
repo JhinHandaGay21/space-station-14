@@ -15,16 +15,16 @@
     closeTimeTwo: 0.4
     openTimeOne: 0.4
     openTimeTwo: 0.4
-    pryTime: -1
+    openingAnimationTime: 1.0
+    closingAnimationTime: 1.0
+    canPry: false
     crushDamage:
       types:
         Blunt: 25 # yowch
   - type: Occluder
   - type: Appearance
-    visuals:
-    - type: AirlockVisualizer
-      simpleVisuals: true
-      animationTime: 1.0
+  - type: RadiationBlocker
+    resistance: 8
 
 - type: entity
   id: BlastDoorOpen
@@ -33,3 +33,11 @@
   components:
   - type: Door
     state: Open
+  - type: Occluder
+    enabled: false
+  - type: Physics
+    canCollide: false
+  - type: Airtight
+    airBlocked: false
+  - type: RadiationBlocker
+    enabled: false

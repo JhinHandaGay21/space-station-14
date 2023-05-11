@@ -2,7 +2,6 @@ using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
-using Robust.Shared.Utility;
 
 namespace Content.Shared.Weapons.Ranged.Components;
 
@@ -21,13 +20,14 @@ public class AmmoComponent : Component, IShootable
 /// <summary>
 /// Spawns another prototype to be shot instead of itself.
 /// </summary>
-[RegisterComponent, NetworkedComponent, ComponentReference(typeof(AmmoComponent))]
-public sealed class CartridgeAmmoComponent : AmmoComponent
+[RegisterComponent, NetworkedComponent, ComponentReference(typeof(AmmoComponent)), AutoGenerateComponentState]
+public sealed partial class CartridgeAmmoComponent : AmmoComponent
 {
     [ViewVariables(VVAccess.ReadWrite), DataField("proto", required: true, customTypeSerializer: typeof(PrototypeIdSerializer<EntityPrototype>))]
     public string Prototype = default!;
 
     [ViewVariables(VVAccess.ReadWrite), DataField("spent")]
+    [AutoNetworkedField]
     public bool Spent = false;
 
     /// <summary>
@@ -45,9 +45,9 @@ public sealed class CartridgeAmmoComponent : AmmoComponent
     /// <summary>
     /// Caseless ammunition.
     /// </summary>
-    [ViewVariables, DataField("deleteOnSpawn")]
+    [DataField("deleteOnSpawn")]
     public bool DeleteOnSpawn;
 
-    [ViewVariables, DataField("soundEject")]
+    [DataField("soundEject")]
     public SoundSpecifier? EjectSound = new SoundCollectionSpecifier("CasingEject");
 }

@@ -1,10 +1,10 @@
 ﻿using Content.Server.Mind.Commands;
-using Robust.Server.Player;
 
 namespace Content.Server.Ghost.Roles.Components
 {
+    [RegisterComponent]
     [Access(typeof(GhostRoleSystem))]
-    public abstract class GhostRoleComponent : Component
+    public sealed class GhostRoleComponent : Component
     {
         [DataField("name")] public string _roleName = "Unknown";
 
@@ -16,7 +16,7 @@ namespace Content.Server.Ghost.Roles.Components
         /// Whether the <see cref="MakeSentientCommand"/> should run on the mob.
         /// </summary>
         [ViewVariables(VVAccess.ReadWrite)] [DataField("makeSentient")]
-        protected bool MakeSentient = true;
+        public bool MakeSentient = true;
 
         /// <summary>
         ///     The probability that this ghost role will be available after init.
@@ -31,7 +31,7 @@ namespace Content.Server.Ghost.Roles.Components
         [Access(typeof(GhostRoleSystem), Other = AccessPermissions.ReadWriteExecute)] // FIXME Friends
         public string RoleName
         {
-            get => _roleName;
+            get => Loc.GetString(_roleName);
             set
             {
                 _roleName = value;
@@ -43,7 +43,7 @@ namespace Content.Server.Ghost.Roles.Components
         [Access(typeof(GhostRoleSystem), Other = AccessPermissions.ReadWriteExecute)] // FIXME Friends
         public string RoleDescription
         {
-            get => _roleDescription;
+            get => Loc.GetString(_roleDescription);
             set
             {
                 _roleDescription = value;
@@ -63,6 +63,14 @@ namespace Content.Server.Ghost.Roles.Components
             }
         }
 
+        [DataField("allowSpeech")]
+        [ViewVariables(VVAccess.ReadWrite)]
+        public bool AllowSpeech { get; set; } = true;
+
+        [DataField("allowMovement")]
+        [ViewVariables(VVAccess.ReadWrite)]
+        public bool AllowMovement { get; set; }
+
         [ViewVariables(VVAccess.ReadOnly)]
         public bool Taken { get; set; }
 
@@ -75,7 +83,5 @@ namespace Content.Server.Ghost.Roles.Components
         [ViewVariables(VVAccess.ReadWrite)]
         [DataField("reregister")]
         public bool ReregisterOnGhost { get; set; } = true;
-
-        public abstract bool Take(IPlayerSession session);
     }
 }

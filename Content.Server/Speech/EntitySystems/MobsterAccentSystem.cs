@@ -8,26 +8,11 @@ namespace Content.Server.Speech.EntitySystems;
 public sealed class MobsterAccentSystem : EntitySystem
 {
     [Dependency] private readonly IRobustRandom _random = default!;
+    [Dependency] private readonly ReplacementAccentSystem _replacement = default!;
 
     private static readonly Dictionary<string, string> DirectReplacements = new()
     {
-        { "let me", "lemme" },
-        { "should", "oughta" },
-        { "the", "da" },
-        { "them", "dem" },
-        { "attack", "whack" },
-        { "kill", "whack" },
-        { "murder", "whack" },
-        { "dead", "sleepin' with da fishies"},
-        { "hey", "ey'o" },
-        { "hi", "ey'o"},
-        { "hello", "ey'o"},
-        { "rules", "roolz" },
-        { "you", "yous" },
-        { "have to", "gotta" },
-        { "going to", "boutta" },
-        { "about to", "boutta" },
-        { "here", "'ere" },
+        // Corvax-Localization-Start
         { "утащил", "сдёрнул" },
         { "принеси", "надыбай" },
         { "принесите", "надыбайте" },
@@ -54,7 +39,25 @@ public sealed class MobsterAccentSystem : EntitySystem
         { "тут", "тута" },
         { "привет", "аве" },
         { "плохо", "ацтой" },
-        { "хорошо", "агонь" }
+        { "хорошо", "агонь" },
+        // Corvax-Localization-End
+        { "let me", "lemme" },
+        { "should", "oughta" },
+        { "the", "da" },
+        { "them", "dem" },
+        { "attack", "whack" },
+        { "kill", "whack" },
+        { "murder", "whack" },
+        { "dead", "sleepin' with da fishies"},
+        { "hey", "ey'o" },
+        { "hi", "ey'o"},
+        { "hello", "ey'o"},
+        { "rules", "roolz" },
+        { "you", "yous" },
+        { "have to", "gotta" },
+        { "going to", "boutta" },
+        { "about to", "boutta" },
+        { "here", "'ere" }
     };
 
     public override void Initialize()
@@ -70,12 +73,8 @@ public sealed class MobsterAccentSystem : EntitySystem
         // Do text manipulations first
         // Then prefix/suffix funnyies
 
-        var msg = message;
-
-        foreach (var (first, replace) in DirectReplacements)
-        {
-            msg = Regex.Replace(msg, $@"(?<!\w){first}(?!\w)", replace, RegexOptions.IgnoreCase);
-        }
+        // direct word replacements
+        var msg = _replacement.ApplyReplacements(message, "mobster");
 
         // thinking -> thinkin'
         // king -> king

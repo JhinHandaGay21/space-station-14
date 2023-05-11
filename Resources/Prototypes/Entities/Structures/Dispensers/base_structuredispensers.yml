@@ -1,6 +1,7 @@
 ﻿- type: entity
   abstract: true
   id: ReagentDispenserBase
+  parent: ConstructibleMachine
   placement:
     mode: SnapgridCenter
   components:
@@ -13,14 +14,15 @@
     bodyType: Static
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeAabb
-        bounds: "-0.4,-0.3,0.4,0.3"
-      mass: 25
-      mask:
-      - TabletopMachineMask
-      layer:
-      - TabletopMachineLayer
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.4,-0.3,0.4,0.3"
+        density: 190
+        mask:
+        - TabletopMachineMask
+        layer:
+        - TabletopMachineLayer
   - type: ApcPowerReceiver
   - type: ExtensionCableReceiver
   - type: ActivatableUI
@@ -39,6 +41,12 @@
     thresholds:
     - trigger:
         !type:DamageTrigger
+        damage: 400
+      behaviors:
+        - !type:DoActsBehavior
+          acts: [ "Destruction" ]
+    - trigger:
+        !type:DamageTrigger
         damage: 200
       behaviors:
       - !type:DoActsBehavior
@@ -47,8 +55,17 @@
         sound:
           path: /Audio/Effects/metalbreak.ogg
   - type: ReagentDispenser
-    beakerSlot:
-      whitelistFailPopup: reagent-dispenser-component-cannot-put-entity-message
-      whitelist:
-        components:
-        - FitsInDispenser
+  - type: ItemSlots
+    slots:
+      beakerSlot:
+        whitelistFailPopup: reagent-dispenser-component-cannot-put-entity-message
+        whitelist:
+          components:
+          - FitsInDispenser
+  - type: ContainerContainer
+    containers:
+      machine_board: !type:Container
+      machine_parts: !type:Container
+      beakerSlot: !type:ContainerSlot
+  - type: StaticPrice
+    price: 1000

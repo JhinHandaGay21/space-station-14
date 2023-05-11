@@ -1,16 +1,13 @@
 # Chat window radio wrap (prefix and postfix)
-chat-radio-message-wrap = [color={ $color }]{ $channel } { $name } говорит, "{ "{" }0{ "}" }"[/color]
-examine-radio-frequency = Оно настроено вещать на { $frequency } частоте.
-examine-headset = На небольшом экране гарнитуры отображаются следующие доступные частоты:
-examine-headset-channel = [color={ $color }]:{ $key } для { $id } ({ $freq })[/color]
-examine-headset-chat-prefix = Используйте { $prefix } для текущей настроенной частоты.
+chat-radio-message-wrap = [color={ $color }]{ $channel } { $name } говорит: "{ $message }"[/color]
+examine-headset-default-channel = Отображается, что каналом по умолчанию этой гарнитуры является [color={ $color }]{ $channel }[/color].
 chat-radio-common = Общий
-chat-radio-centcom = ЦентКом
+chat-radio-centcom = Центком
 chat-radio-command = Командный
 chat-radio-engineering = Инженерный
 chat-radio-medical = Медицинский
 chat-radio-science = Научный
 chat-radio-security = Безопасность
 chat-radio-service = Сервис
-chat-radio-supply = Поставки
+chat-radio-supply = Снабжение
 chat-radio-syndicate = Синдикат

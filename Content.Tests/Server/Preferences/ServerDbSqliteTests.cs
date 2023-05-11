@@ -4,9 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Content.Server.Database;
-using Content.Shared.CharacterAppearance;
 using Content.Shared.GameTicking;
-using Content.Shared.Markings;
+using Content.Shared.Humanoid;
 using Content.Shared.Preferences;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +41,7 @@ namespace Content.Tests.Server.Preferences
 - type: dataset
   id: names_last_female
   values:
-  - Ackerla";
+  - Ackerla";  // Corvax-LastnameGender
 
         private static HumanoidCharacterProfile CharlieCharlieson()
         {
@@ -50,6 +49,7 @@ namespace Content.Tests.Server.Preferences
                 "Charlie Charlieson",
                 "The biggest boy around.",
                 "Human",
+                "Eugene", // Corvax-TTS
                 21,
                 Sex.Male,
                 Gender.Epicene,
@@ -60,7 +60,7 @@ namespace Content.Tests.Server.Preferences
                     Color.Aquamarine,
                     Color.Azure,
                     Color.Beige,
-                    new MarkingsSet()
+                    new ()
                 ),
                 ClothingPreference.Jumpskirt,
                 BackpackPreference.Backpack,
@@ -69,7 +69,8 @@ namespace Content.Tests.Server.Preferences
                     {SharedGameTicker.FallbackOverflowJob, JobPriority.High}
                 },
                 PreferenceUnavailableMode.StayInLobby,
-                new List<string> ()
+                new List<string> (),
+                new List<string>()
             );
         }
 
@@ -79,7 +80,7 @@ namespace Content.Tests.Server.Preferences
             var conn = new SqliteConnection("Data Source=:memory:");
             conn.Open();
             builder.UseSqlite(conn);
-            return new ServerDbSqlite(builder.Options);
+            return new ServerDbSqlite(() => builder.Options, true);
         }
 
         [Test]
@@ -111,7 +112,7 @@ namespace Content.Tests.Server.Preferences
             var prototypeManager = IoCManager.Resolve<IPrototypeManager>();
             prototypeManager.Initialize();
             prototypeManager.LoadFromStream(new StringReader(Prototypes));
-            await db.InitPrefsAsync(username, HumanoidCharacterProfile.Default());
+            await db.InitPrefsAsync(username, new HumanoidCharacterProfile());
             await db.SaveCharacterSlotAsync(username, CharlieCharlieson(), 1);
             await db.SaveSelectedCharacterIndexAsync(username, 1);
             await db.SaveCharacterSlotAsync(username, null, 1);

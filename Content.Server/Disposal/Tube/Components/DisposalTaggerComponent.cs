@@ -3,35 +3,29 @@ using Content.Server.UserInterface;
 using Robust.Server.GameObjects;
 using Robust.Shared.Audio;
 using Robust.Shared.Physics;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Player;
 using static Content.Shared.Disposal.Components.SharedDisposalTaggerComponent;
 
 namespace Content.Server.Disposal.Tube.Components
 {
     [RegisterComponent]
-    [ComponentReference(typeof(IDisposalTubeComponent))]
-    [ComponentReference(typeof(DisposalTubeComponent))]
     public sealed class DisposalTaggerComponent : DisposalTransitComponent
     {
         [Dependency] private readonly IEntityManager _entMan = default!;
 
         [ViewVariables(VVAccess.ReadWrite)]
-        private string _tag = "";
+        [DataField("tag")]
+        public string Tag = "";
 
         [ViewVariables]
         public bool Anchored =>
             !_entMan.TryGetComponent(Owner, out PhysicsComponent? physics) ||
             physics.BodyType == BodyType.Static;
 
-        [ViewVariables] private BoundUserInterface? UserInterface => Owner.GetUIOrNull(DisposalTaggerUiKey.Key);
+        [ViewVariables] public BoundUserInterface? UserInterface => Owner.GetUIOrNull(DisposalTaggerUiKey.Key);
 
         [DataField("clickSound")] private SoundSpecifier _clickSound = new SoundPathSpecifier("/Audio/Machines/machine_switch.ogg");
-
-        public override Direction NextDirection(DisposalHolderComponent holder)
-        {
-            holder.Tags.Add(_tag);
-            return base.NextDirection(holder);
-        }
 
         protected override void Initialize()
         {
@@ -41,8 +35,6 @@ namespace Content.Server.Disposal.Tube.Components
             {
                 UserInterface.OnReceiveMessage += OnUiReceiveMessage;
             }
-
-            UpdateUserInterface();
         }
 
         /// <summary>
@@ -60,24 +52,9 @@ namespace Content.Server.Disposal.Tube.Components
             //Check for correct message and ignore maleformed strings
             if (msg.Action == UiAction.Ok && TagRegex.IsMatch(msg.Tag))
             {
-                    _tag = msg.Tag;
+                    Tag = msg.Tag;
                     ClickSound();
             }
-        }
-
-        /// <summary>
-        /// Gets component data to be used to update the user interface client-side.
-        /// </summary>
-        /// <returns>Returns a <see cref="DisposalTaggerUserInterfaceState"/></returns>
-        private DisposalTaggerUserInterfaceState GetUserInterfaceState()
-        {
-            return new(_tag);
-        }
-
-        private void UpdateUserInterface()
-        {
-            var state = GetUserInterfaceState();
-            UserInterface?.SetState(state);
         }
 
         private void ClickSound()
@@ -89,11 +66,6 @@ namespace Content.Server.Disposal.Tube.Components
         {
             base.OnRemove();
             UserInterface?.CloseAll();
-        }
-        public void OpenUserInterface(ActorComponent actor)
-        {
-            UpdateUserInterface();
-            UserInterface?.Open(actor.PlayerSession);
         }
     }
 }

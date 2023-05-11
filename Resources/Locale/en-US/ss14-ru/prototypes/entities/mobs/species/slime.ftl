@@ -1,6 +1,4 @@
 ent-BaseMobSlimePerson = Urist McSlime
-    .desc = A miserable pile of slime.
-    .suffix = { "" }
+    .desc = { ent-BaseMobOrganic.desc }
 ent-MobSlimePersonDummy = Urist McHands
     .desc = A dummy slime meant to be used in character setup.
-    .suffix = { "" }

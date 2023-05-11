@@ -4,32 +4,44 @@
   name: shutter
   abstract: true
   description: One shudders to think about what might be behind this shutter.
+  placement:
+    mode: SnapgridCenter
   components:
   - type: Sprite
     netsync: false
     sprite: Structures/Doors/Shutters/shutters.rsi
+    drawdepth: Overdoors
     layers:
     - state: closed
       map: ["enum.DoorVisualLayers.Base"]
+  - type: AnimationPlayer
   - type: Physics
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeAabb
-        bounds: "-0.49,-0.49,0.49,0.49" # don't want this colliding with walls or they won't close
-      mass: 100
-      mask:
-      - FullTileMask
-      layer:
-      - AirlockLayer
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.49,-0.49,0.49,0.49" # don't want this colliding with walls or they won't close
+        density: 100
+        mask:
+        - FullTileMask
+        layer:
+        - AirlockLayer
+  - type: ContainerFill
+    containers:
+      board: [ DoorElectronics ]
+  - type: ContainerContainer
+    containers:
+      board: !type:Container
   - type: Door
-    board: DoorElectronics
     bumpOpen: false
     clickOpen: false
     closeTimeOne: 0.2
     closeTimeTwo: 1.2
     openTimeOne: 1.2
     openTimeTwo: 0.2
+    openingAnimationTime: 1.4
+    closingAnimationTime: 1.4
     crushDamage:
       types:
         Blunt: 5 # getting shutters closed on you probably doesn't hurt that much
@@ -41,16 +53,14 @@
     fuel: 3
     time: 3
   - type: Appearance
-    visuals:
-      - type: AirlockVisualizer
-        simpleVisuals: true
-        animationTime: 1.4
   - type: UserInterface
     interfaces:
     - key: enum.WiresUiKey.Key
       type: WiresBoundUserInterface
   - type: Airtight
     fixVacuum: true
+  - type: RadiationBlocker
+    resistance: 2
   - type: Damageable
     damageContainer: Inorganic
     damageModifierSet: Metallic
@@ -66,13 +76,24 @@
     key: walls
     mode: NoSprite
   - type: DoorSignalControl
+  - type: DeviceNetwork
+    deviceNetId: Wireless
+    receiveFrequencyId: BasicDevice
+  - type: WirelessNetworkConnection
+    range: 200
+  - type: DeviceLinkSink
+    ports:
+      - Open
+      - Close
+      - Toggle
+  - type: DeviceLinkSource
+    ports:
+    - DoorStatus
   - type: InteractionPopup
     interactSuccessString: comp-window-knock
     messagePerceivedByOthers: comp-window-knock
     interactSuccessSound:
       path: /Audio/Effects/glass_knock.ogg
-  placement:
-    mode: SnapgridCenter
 
 - type: entity
   id: ShuttersNormal
@@ -82,6 +103,8 @@
   - type: Construction
     graph: Shutters
     node: Shutters
+    containers:
+    - board
 
 - type: entity
   id: ShuttersNormalOpen
@@ -96,9 +119,8 @@
     enabled: false
   - type: Airtight
     airBlocked: false
-  - type: Construction
-    graph: Shutters
-    node: Shutters
+  - type: RadiationBlocker
+    enabled: false
 
 - type: entity
   id: ShuttersRadiation
@@ -116,6 +138,8 @@
   - type: Construction
     graph: Shutters
     node: ShuttersRadiation
+    containers:
+    - board
 
 - type: entity
   id: ShuttersRadiationOpen
@@ -124,9 +148,14 @@
   components:
   - type: Door
     state: Open
-  - type: Construction
-    graph: Shutters
-    node: ShuttersRadiation
+  - type: Occluder
+    enabled: false
+  - type: Physics
+    canCollide: false
+  - type: Airtight
+    airBlocked: false
+  - type: RadiationBlocker
+    enabled: false
 
 - type: entity
   id: ShuttersWindow
@@ -143,6 +172,8 @@
   - type: Construction
     graph: Shutters
     node: ShuttersWindow
+    containers:
+    - board
 
 - type: entity
   id: ShuttersWindowOpen
@@ -151,9 +182,12 @@
   components:
   - type: Door
     state: Open
-  - type: Construction
-    graph: Shutters
-    node: ShuttersWindow
+  - type: Physics
+    canCollide: false
+  - type: Airtight
+    airBlocked: false
+  - type: RadiationBlocker
+    enabled: false
 
 # Frame for construction
 - type: entity
@@ -169,6 +203,8 @@
   - type: Construction
     graph: Shutters
     node: frame1
+    containers:
+    - board
   - type: InteractionOutline
   - type: Damageable
     damageContainer: Inorganic
@@ -185,14 +221,15 @@
     bodyType: Dynamic
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeAabb
-        bounds: "-0.45,-0.45,0.45,0.45"
-      mass: 50
-      mask:
-      - Impassable
-      - HighImpassable
-      layer:
-      - HighImpassable
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.45,-0.45,0.45,0.45"
+        density: 55
+        mask:
+        - Impassable
+        - HighImpassable
+        layer:
+        - HighImpassable
   - type: Transform
     noRot: true

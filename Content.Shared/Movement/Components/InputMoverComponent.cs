@@ -1,4 +1,6 @@
+using Content.Shared.Movement.Systems;
 using Robust.Shared.GameStates;
+using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 using Robust.Shared.Timing;
 
 namespace Content.Shared.Movement.Components
@@ -40,8 +42,30 @@ namespace Content.Shared.Movement.Components
 
         public MoveButtons HeldMoveButtons = MoveButtons.None;
 
+        /// <summary>
+        /// Entity our movement is relative to.
+        /// </summary>
+        public EntityUid? RelativeEntity;
+
+        /// <summary>
+        /// Although our movement might be relative to a particular entity we may have an additional relative rotation
+        /// e.g. if we've snapped to a different cardinal direction
+        /// </summary>
         [ViewVariables]
-        public Angle LastGridAngle { get; set; } = new(0);
+        public Angle TargetRelativeRotation = Angle.Zero;
+
+        /// <summary>
+        /// The current relative rotation. This will lerp towards the <see cref="TargetRelativeRotation"/>.
+        /// </summary>
+        [ViewVariables] public Angle RelativeRotation;
+
+        /// <summary>
+        /// If we traverse on / off a grid then set a timer to update our relative inputs.
+        /// </summary>
+        [ViewVariables(VVAccess.ReadWrite), DataField("lerpTarget", customTypeSerializer: typeof(TimeOffsetSerializer))]
+        public TimeSpan LerpTarget;
+
+        public const float LerpTime = 1.0f;
 
         public bool Sprinting => (HeldMoveButtons & MoveButtons.Walk) == 0x0;
 

@@ -1,9 +1,13 @@
 - type: job
   id: Scientist
   name: job-name-scientist
+  description: job-description-scientist
+  playTimeTracker: JobScientist
+  requirements:
+    - !type:DepartmentTimeRequirement
+      department: Science
+      time: 18000 # Corvax-RoleTime
   startingGear: ScientistGear
-  departments:
-  - Science
   icon: "Scientist"
   supervisors: job-supervisors-rd
   access:
@@ -16,7 +20,7 @@
     jumpsuit: ClothingUniformJumpsuitScientist
     back: ClothingBackpackScienceFilled
     shoes: ClothingShoesColorWhite
-    outerClothing: ClothingOuterCoatLab
+    outerClothing: ClothingOuterCoatRnd
     id: SciencePDA
     ears: ClothingHeadsetScience
   innerclothingskirt: ClothingUniformJumpskirtScientist

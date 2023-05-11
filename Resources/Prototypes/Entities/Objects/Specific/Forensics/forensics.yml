@@ -5,7 +5,7 @@
   description: A forensic pad for collecting fingerprints or fibers.
   components:
   - type: Item
-    size: 3
+    size: 1  # Corvax-Balance
   - type: ForensicPad
   - type: Sprite
     sprite: Objects/Misc/bureaucracy.rsi
@@ -13,3 +13,6 @@
     layers:
     - state: paper
       color: yellow
+  - type: Tag
+    tags:
+    - Document

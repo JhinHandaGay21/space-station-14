@@ -6,11 +6,9 @@
   components:
   - type: InputMover
   - type: MobMover
-  - type: UtilityNPC
-    behaviorSets:
-    - Idle
-    - UnarmedAttackHostiles
-  - type: AiFactionTag
+  - type: HTN
+    rootTask: SimpleHostileCompound
+  - type: Faction
     factions:
     - SimpleHostile
   - type: Sprite
@@ -26,19 +24,26 @@
     baseSprintSpeed : 6
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeCircle
-        radius: 0.20
-      mass: 2.5
-      mask:
-      - SmallMobMask
-      layer:
-      - SmallMobLayer
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.20
+        density: 20
+        mask:
+        - SmallMobMask
+        layer:
+        - SmallMobLayer
   - type: MobState
+    allowedStates:
+      - Alive
+      - Dead
+  - type: MobThresholds
     thresholds:
       0: Alive
       15: Dead
-  - type: MovementIgnoreGravity
+  - type: Stamina
+    excess: 15
+  - type: MovementAlwaysTouching
   - type: Appearance
   - type: DamageStateVisuals
     states:
@@ -53,36 +58,29 @@
   - type: Bloodstream
     bloodMaxVolume: 50
   - type: CombatMode
-    disarmAction:
-      enabled: false
-      autoPopulate: false
-      name: action-name-disarm
   - type: MeleeWeapon
-    range: 0.5
-    arcwidth: 0
-    arc: bite
+    hidden: true
+    soundHit:
+        path: /Audio/Effects/bite.ogg
+    angle: 0
+    animation: WeaponArcBite
     damage:
       groups:
         Brute: 2
-  - type: MeleeChemicalInjector
   - type: SolutionContainerManager
     solutions:
       melee:
         reagents:
         - ReagentId: Toxin
           Quantity: 5
-  - type: RefillableSolution
+  - type: MeleeChemicalInjector
     solution: melee
-  - type: InjectableSolution
-    solution: melee
-  - type: SolutionTransfer
-    maxTransferAmount: 5
-  - type: GhostTakeoverAvailable
+  - type: GhostRole
     prob: 0.33
     makeSentient: true
-    name: space tick
-    description: |
-      Wreak havoc on the station!
+    name: ghost-role-information-space-tick-name
+    description: ghost-role-information-space-tick-description
+  - type: GhostTakeoverAvailable
   - type: ReplacementAccent
     accent: genericAggressive
 
@@ -91,9 +89,9 @@
   parent: MobTick
   suffix: "Salvage Ruleset"
   components:
+  - type: GhostRole
+    name: ghost-role-information-salvage-tick-name
+    description: ghost-role-information-salvage-tick-description
   - type: GhostTakeoverAvailable
-    name: space tick on salvage wreck
-    description: |
-      Defend the loot inside the salvage wreck!
   - type: SalvageMobRestrictions
 

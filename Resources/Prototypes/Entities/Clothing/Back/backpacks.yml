@@ -9,18 +9,23 @@
     state: icon
   - type: Item
     size: 9999
-    sprite: Clothing/Back/Backpacks/backpack.rsi
   - type: Clothing
     quickEquip: false
     slots:
     - back
-    sprite: Clothing/Back/Backpacks/backpack.rsi
   - type: Storage
     capacity: 100
+  - type: ContainerContainer
+    containers:
+      storagebase: !type:Container
+        ents: []
   - type: UserInterface
     interfaces:
     - key: enum.StorageUiKey.Key
       type: StorageBoundUserInterface
+  # to prevent bag open/honk spam
+  - type: UseDelay
+    delay: 0.5
 
 - type: entity
   parent: ClothingBackpack
@@ -30,11 +35,21 @@
   components:
   - type: Sprite
     sprite: Clothing/Back/Backpacks/clown.rsi
-  - type: Clothing
-    sprite: Clothing/Back/Backpacks/clown.rsi
   - type: Storage
     storageOpenSound:
       collection: BikeHorn
+
+- type: entity
+  parent: ClothingBackpack
+  id: ClothingBackpackIan
+  name: Ian's backpack
+  description: Sometimes he wears it.
+  components:
+  - type: Sprite
+    sprite: Clothing/Back/Backpacks/ian.rsi
+  - type: Storage
+    storageOpenSound:
+      collection: IanBark
 
 - type: entity
   parent: ClothingBackpack
@@ -44,8 +59,15 @@
   components:
   - type: Sprite
     sprite: Clothing/Back/Backpacks/security.rsi
-  - type: Clothing
-    sprite: Clothing/Back/Backpacks/security.rsi
+
+- type: entity
+  parent: ClothingBackpack
+  id: ClothingBackpackBrigmedic
+  name: brigmedic backpack
+  description: It's a very sterile backpack.
+  components:
+  - type: Sprite
+    sprite: Clothing/Back/Backpacks/brigmedic.rsi
 
 - type: entity
   parent: ClothingBackpack
@@ -54,8 +76,6 @@
   description: It's a tough backpack for the daily grind of station life.
   components:
   - type: Sprite
-    sprite: Clothing/Back/Backpacks/engineering.rsi
-  - type: Clothing
     sprite: Clothing/Back/Backpacks/engineering.rsi
 
 - type: entity
@@ -66,8 +86,6 @@
   components:
   - type: Sprite
     sprite: Clothing/Back/Backpacks/medical.rsi
-  - type: Clothing
-    sprite: Clothing/Back/Backpacks/medical.rsi
 
 - type: entity
   parent: ClothingBackpack
@@ -76,8 +94,6 @@
   description: It's a special backpack made exclusively for Nanotrasen officers.
   components:
   - type: Sprite
-    sprite: Clothing/Back/Backpacks/captain.rsi
-  - type: Clothing
     sprite: Clothing/Back/Backpacks/captain.rsi
 
 - type: entity
@@ -88,8 +104,6 @@
   components:
   - type: Sprite
     sprite: Clothing/Back/Backpacks/mime.rsi
-  - type: Clothing
-    sprite: Clothing/Back/Backpacks/mime.rsi
 
 - type: entity
   parent: ClothingBackpack
@@ -99,19 +113,15 @@
   components:
   - type: Sprite
     sprite: Clothing/Back/Backpacks/chemistry.rsi
-  - type: Clothing
-    sprite: Clothing/Back/Backpacks/chemistry.rsi
 
 - type: entity
   parent: ClothingBackpack
   id: ClothingBackpackHydroponics
-  name: botany backpack
+  name: hydroponics backpack
   description: It's a backpack made of all-natural fibers.
   components:
   - type: Sprite
-    sprite: Clothing/Back/Backpacks/botany.rsi
-  - type: Clothing
-    sprite: Clothing/Back/Backpacks/botany.rsi
+    sprite: Clothing/Back/Backpacks/hydroponics.rsi
 
 - type: entity
   parent: ClothingBackpack
@@ -120,8 +130,6 @@
   description: A backpack specially designed to repel stains and hazardous liquids.
   components:
   - type: Sprite
-    sprite: Clothing/Back/Backpacks/science.rsi
-  - type: Clothing
     sprite: Clothing/Back/Backpacks/science.rsi
 
 - type: entity
@@ -132,22 +140,36 @@
   components:
   - type: Sprite
     sprite: Clothing/Back/Backpacks/virology.rsi
-  - type: Clothing
-    sprite: Clothing/Back/Backpacks/virology.rsi
+
+- type: entity
+  parent: ClothingBackpack
+  id: ClothingBackpackGenetics
+  name: genetics backpack
+  description: A backpack designed to be super tough, just in case someone hulks out on you.
+  components:
+  - type: Sprite
+    sprite: Clothing/Back/Backpacks/genetics.rsi
+
+- type: entity
+  parent: ClothingBackpack
+  id: ClothingBackpackSalvage
+  name: salvage bag
+  description: A robust backpack for stashing your loot.
+  components:
+    - type: Sprite
+      sprite: Clothing/Back/Backpacks/salvage.rsi
 
 #ERT
 - type: entity
   parent: ClothingBackpack
   id: ClothingBackpackERTLeader
-  name: ERT commander backpack
+  name: ERT leader backpack
   description: A spacious backpack with lots of pockets, worn by the Commander of an Emergency Response Team.
   components:
   - type: Sprite
     sprite: Clothing/Back/Backpacks/ertleader.rsi
-  - type: Clothing
-    sprite: Clothing/Back/Backpacks/ertleader.rsi
   - type: Storage
-    capacity: 200
+    capacity: 250
 
 - type: entity
   parent: ClothingBackpackERTLeader
@@ -156,8 +178,6 @@
   description: A spacious backpack with lots of pockets, worn by Security Officers of an Emergency Response Team.
   components:
   - type: Sprite
-    sprite: Clothing/Back/Backpacks/ertsec.rsi
-  - type: Clothing
     sprite: Clothing/Back/Backpacks/ertsec.rsi
 
 - type: entity
@@ -168,8 +188,6 @@
   components:
   - type: Sprite
     sprite: Clothing/Back/Backpacks/ertmed.rsi
-  - type: Clothing
-    sprite: Clothing/Back/Backpacks/ertmed.rsi
 
 - type: entity
   parent: ClothingBackpackERTLeader
@@ -178,8 +196,6 @@
   description: A spacious backpack with lots of pockets, worn by Engineers of an Emergency Response Team.
   components:
   - type: Sprite
-    sprite: Clothing/Back/Backpacks/erteng.rsi
-  - type: Clothing
     sprite: Clothing/Back/Backpacks/erteng.rsi
 
 - type: entity
@@ -190,8 +206,6 @@
   components:
   - type: Sprite
     sprite: Clothing/Back/Backpacks/ertjanitor.rsi
-  - type: Clothing
-    sprite: Clothing/Back/Backpacks/ertjanitor.rsi
 
 - type: entity
   parent: ClothingBackpackERTLeader
@@ -200,8 +214,6 @@
   description: A spacious backpack with lots of pockets, worn by Clowns of an Emergency Response Team.
   components:
   - type: Sprite
-    sprite: Clothing/Back/Backpacks/ertclown.rsi
-  - type: Clothing
     sprite: Clothing/Back/Backpacks/ertclown.rsi
 
 #Special
@@ -219,6 +231,19 @@
     - state: holding-unlit
       shader: unshaded
   - type: Clothing
-    sprite: Clothing/Back/Backpacks/holding.rsi
+    equippedPrefix: holding
   - type: Storage
-    capacity: 10000
+    capacity: 9999
+
+- type: entity
+  parent: ClothingBackpackClown
+  id: ClothingBackpackCluwne
+  name: cursed giggles von honkerton
+  suffix: Unremoveable
+  description: Cursed giggles von honkerton backpack.
+  components:
+  - type: Sprite
+    sprite: Clothing/Back/Backpacks/cluwne.rsi
+  - type: Unremoveable
+    deleteOnDrop: false
+

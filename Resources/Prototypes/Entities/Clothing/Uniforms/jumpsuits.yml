@@ -22,6 +22,17 @@
 
 - type: entity
   parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitJacketMonkey
+  name: bartender's jacket monkey
+  description: A decent jacket, for a decent monkey.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/punpun.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/punpun.rsi
+
+- type: entity
+  parent: ClothingUniformBase
   id: ClothingUniformJumpsuitBartenderPurple
   name: purple bartender's uniform
   description: A special purple outfit to serve drinks.
@@ -98,8 +109,8 @@
 - type: entity
   parent: ClothingUniformBase
   id: ClothingUniformJumpsuitCentcomOfficial
-  name: CentCom official's jumpsuit
-  description: It's a jumpsuit worn by CentCom's officials.
+  name: CentCom officer's suit # Corvax-Resprite
+  description: It's a suit worn by CentCom's highest-tier Commanders. # Corvax-Resprite
   components:
   - type: Sprite
     sprite: Clothing/Uniforms/Jumpsuit/centcom_official.rsi
@@ -109,8 +120,8 @@
 - type: entity
   parent: ClothingUniformBase
   id: ClothingUniformJumpsuitCentcomOfficer
-  name: CentCom officer's jumpsuit
-  description: It's a jumpsuit worn by CentCom Officers.
+  name: CentCom turtleneck suit # Corvax-Resprite
+  description: A casual, yet refined green turtleneck, used by CentCom Officials. It has a fragrance of aloe. # Corvax-Resprite
   components:
   - type: Sprite
     sprite: Clothing/Uniforms/Jumpsuit/centcom_officer.rsi
@@ -141,6 +152,28 @@
 
 - type: entity
   parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitVirology
+  name: virology jumpsuit
+  description: It's made of a special fiber that gives special protection against biohazards. It has a virologist rank stripe on it.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/virology.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/virology.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitGenetics
+  name: genetics jumpsuit
+  description: It's made of a special fiber that gives special protection against biohazards. It has a geneticist rank stripe on it.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/genetics.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/genetics.rsi
+
+- type: entity
+  parent: ClothingUniformBase
   id: ClothingUniformJumpsuitClown
   name: clown suit
   description: HONK!
@@ -153,6 +186,26 @@
 
 - type: entity
   parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitJester
+  name: jester suit
+  description: A jolly dress, well suited to entertain your master, nuncle.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/jester.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/jester.rsi
+
+- type: entity
+  parent: ClothingUniformJumpsuitJester
+  id: ClothingUniformJumpsuitJesterAlt
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/jester2.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/jester2.rsi
+
+- type: entity
+  parent: ClothingUniformBase
   id: ClothingUniformJumpsuitCMO
   name: chief medical officer's jumpsuit
   description: It's a jumpsuit worn by those with the experience to be Chief Medical Officer. It provides minor biological protection.
@@ -161,8 +214,6 @@
     sprite: Clothing/Uniforms/Jumpsuit/cmo.rsi
   - type: Clothing
     sprite: Clothing/Uniforms/Jumpsuit/cmo.rsi
-  - type: DiseaseProtection
-    protection: 0.15
 
 - type: entity
   parent: ClothingUniformBase
@@ -199,6 +250,17 @@
 
 - type: entity
   parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitEngineeringHazard
+  name: hazard jumpsuit
+  description: Woven in a grungy, warm orange. Lets others around you know that you really mean business when it comes to work.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/engineering_hazard.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/engineering_hazard.rsi
+
+- type: entity
+  parent: ClothingUniformBase
   id: ClothingUniformJumpsuitHoP
   name: head of personnel's jumpsuit
   description: Rather bland and inoffensive. Perfect for vanishing off the face of the universe.
@@ -212,23 +274,33 @@
   parent: ClothingUniformBase
   id: ClothingUniformJumpsuitHoS
   name: head of security's jumpsuit
-  description: It's bright red and rather crisp, much like security's victims tend to be.
+  description: It's bright red and rather crisp, much like security's victims tend to be. Its sturdy fabric provides minor protection from slash and pierce damage.
   components:
   - type: Sprite
     sprite: Clothing/Uniforms/Jumpsuit/hos.rsi
   - type: Clothing
     sprite: Clothing/Uniforms/Jumpsuit/hos.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Slash: 0.9
+        Piercing: 0.9
 
 - type: entity
   parent: ClothingUniformBase
   id: ClothingUniformJumpsuitHoSAlt
   name: head of security's turtleneck
-  description: It's a turtleneck worn by those strong and disciplined enough to achieve the position of Head of Security. Its sturdy fabric provides minor protection from mechanical damage.
+  description: It's a turtleneck worn by those strong and disciplined enough to achieve the position of Head of Security. Its sturdy fabric provides minor protection from slash and pierce damage.
   components:
   - type: Sprite
     sprite: Clothing/Uniforms/Jumpsuit/hos_alt.rsi
   - type: Clothing
     sprite: Clothing/Uniforms/Jumpsuit/hos_alt.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Slash: 0.9
+        Piercing: 0.9
 
 - type: entity
   parent: ClothingUniformBase
@@ -295,8 +367,6 @@
     sprite: Clothing/Uniforms/Jumpsuit/medical.rsi
   - type: Clothing
     sprite: Clothing/Uniforms/Jumpsuit/medical.rsi
-  - type: DiseaseProtection
-    protection: 0.1
 
 - type: entity
   parent: ClothingUniformBase
@@ -319,8 +389,17 @@
     sprite: Clothing/Uniforms/Jumpsuit/paramedic.rsi
   - type: Clothing
     sprite: Clothing/Uniforms/Jumpsuit/paramedic.rsi
-  - type: DiseaseProtection
-    protection: 0.1
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitBrigmedic
+  name: brigmedic jumpsuit
+  description: This uniform is issued to qualified personnel who have been trained. No one cares that the training took half a day.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/brigmedic.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/brigmedic.rsi
 
 - type: entity
   parent: ClothingUniformBase
@@ -369,6 +448,28 @@
     sprite: Clothing/Uniforms/Jumpsuit/scientist.rsi
   - type: Clothing
     sprite: Clothing/Uniforms/Jumpsuit/scientist.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitScientistFormal
+  name: scientist's formal jumpsuit
+  description: A uniform for sophisticated scientists, best worn with its matching tie.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/scientist_formal.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/scientist_formal.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitRoboticist
+  name: roboticist jumpsuit
+  description: It's a slimming black with reinforced seams; great for industrial work.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/roboticist.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/roboticist.rsi
 
 - type: entity
   parent: ClothingUniformBase
@@ -617,8 +718,8 @@
 - type: entity
   parent: ClothingUniformBase
   id: ClothingUniformJumpsuitLibrarian
-  name: librarian jumpsuit
-  description: A cosy green jumper fit for a curator of books.
+  name: sensible suit # Corvax-Resprite
+  description: It's very... sensible. # Corvax-Resprite
   components:
   - type: Sprite
     sprite: Clothing/Uniforms/Jumpsuit/librarian.rsi
@@ -628,7 +729,7 @@
 - type: entity
   parent: ClothingUniformBase
   id: ClothingUniformJumpsuitLawyerRed
-  name: red lawyer jumpsuit
+  name: red lawyer suit
   description: A flashy red suit worn by lawyers and show-offs.
   components:
   - type: Sprite
@@ -639,7 +740,7 @@
 - type: entity
   parent: ClothingUniformBase
   id: ClothingUniformJumpsuitLawyerBlue
-  name: blue lawyer jumpsuit
+  name: blue lawyer suit
   description: A flashy blue suit worn by lawyers and show-offs.
   components:
   - type: Sprite
@@ -650,7 +751,7 @@
 - type: entity
   parent: ClothingUniformBase
   id: ClothingUniformJumpsuitLawyerBlack
-  name: black lawyer jumpsuit
+  name: black lawyer suit
   description: A subtle black suit worn by lawyers and gangsters.
   components:
   - type: Sprite
@@ -661,7 +762,7 @@
 - type: entity
   parent: ClothingUniformBase
   id: ClothingUniformJumpsuitLawyerPurple
-  name: purple lawyer jumpsuit
+  name: purple lawyer suit
   description: A stylish purple piece worn by lawyers and show people.
   components:
   - type: Sprite
@@ -671,6 +772,17 @@
 
 - type: entity
   parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitLawyerGood
+  name: good lawyer's suit
+  description: A tacky suit perfect for a CRIMINAL lawyer!
+  components:
+    - type: Sprite
+      sprite: Clothing/Uniforms/Jumpsuit/lawyergood.rsi
+    - type: Clothing
+      sprite: Clothing/Uniforms/Jumpsuit/lawyergood.rsi
+
+- type: entity
+  parent: UnsensoredClothingUniformBase
   id: ClothingUniformJumpsuitPyjamaSyndicateBlack
   name: black syndicate pyjamas
   description: For those long nights in perma.
@@ -681,7 +793,7 @@
     sprite: Clothing/Uniforms/Jumpsuit/pyjamasyndicateblack.rsi
 
 - type: entity
-  parent: ClothingUniformBase
+  parent: UnsensoredClothingUniformBase
   id: ClothingUniformJumpsuitPyjamaSyndicatePink
   name: pink syndicate pyjamas
   description: For those long nights in perma.
@@ -692,7 +804,7 @@
     sprite: Clothing/Uniforms/Jumpsuit/pyjamasyndicatepink.rsi
 
 - type: entity
-  parent: ClothingUniformBase
+  parent: UnsensoredClothingUniformBase
   id: ClothingUniformJumpsuitPyjamaSyndicateRed
   name: red syndicate pyjamas
   description: For those long nights in perma.
@@ -747,7 +859,7 @@
     sprite: Clothing/Uniforms/Jumpsuit/hosformal.rsi
 
 - type: entity
-  parent: ClothingUniformBase
+  parent: UnsensoredClothingUniformBase
   id: ClothingUniformJumpsuitOperative
   name: operative jumpsuit
   description: Uniform for elite syndicate operatives performing tactical operations in deep space.
@@ -760,13 +872,24 @@
 - type: entity
   parent: ClothingUniformBase
   id: ClothingUniformJumpsuitAtmos
-  name: atmosheric technician jumpsuit
+  name: atmospheric technician jumpsuit
   description: I am at work. I can't leave work. Work is breathing. I am testing air quality.
   components:
   - type: Sprite
     sprite: Clothing/Uniforms/Jumpsuit/atmos.rsi
   - type: Clothing
     sprite: Clothing/Uniforms/Jumpsuit/atmos.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitAtmosCasual
+  name: atmospheric technician's casual jumpsuit
+  description: Might as well relax with a job as easy as yours.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/atmos_casual.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/atmos_casual.rsi
 
 - type: entity
   parent: ClothingUniformBase
@@ -789,6 +912,17 @@
     sprite: Clothing/Uniforms/Jumpsuit/reporter.rsi
   - type: Clothing
     sprite: Clothing/Uniforms/Jumpsuit/reporter.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitSafari
+  name: safari suit
+  description: Perfect for a jungle excursion.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/safari.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/safari.rsi
 
 - type: entity
   parent: ClothingUniformBase
@@ -822,3 +956,177 @@
       sprite: Clothing/Uniforms/Jumpsuit/monastic_robe_light.rsi
     - type: Clothing
       sprite: Clothing/Uniforms/Jumpsuit/monastic_robe_light.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitMusician
+  name: carpskin suit # Corvax-Resprite
+  description: An luxurious suit made with only the finest scales, perfect for any lounge act! # Corvax-Resprite
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/musician.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/musician.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitERTEngineer
+  name: ERT engineering uniform
+  description: A special suit made for the elite engineers under CentCom.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/ert_engineer.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/ert_engineer.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Radiation: 0.8
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitERTJanitor
+  name: ERT janitorial uniform
+  description: A special suit made for the elite janitors under CentCom.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/ert_janitor.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/ert_janitor.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitERTLeader
+  name: ERT leader uniform
+  description: A special suit made for the best of the elites under CentCom.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/ert_leader.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/ert_leader.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.8
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitERTMedic
+  name: ERT medical uniform
+  description: A special suit made for the elite medics under CentCom.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/ert_medic.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/ert_medic.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitERTSecurity
+  name: ERT security uniform
+  description: A special suit made for the elite security under CentCom.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/ert_security.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/ert_security.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.8
+        Slash: 0.8
+        Piercing: 0.8
+
+- type: entity
+  parent: ClothingUniformJumpsuitClown
+  id: ClothingUniformJumpsuitCluwne
+  name: cluwne suit
+  suffix: Unremoveable
+  description: Cursed cluwne suit.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/cluwne.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/cluwne.rsi
+  - type: Unremoveable
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitDameDane
+  name: yakuza outfit
+  description: Baka mitai...
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/damedaneoutfit.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/damedaneoutfit.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitPirate
+  name: pirate slops
+  description: A pirate variation of a space sailor's jumpsuit.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/pirate.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/pirate.rsi
+  - type: AddAccentClothing
+    accent: PirateAccent
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitCossack
+  name: Cossack suit
+  description: the good old pants and brigantine.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/cossack.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/cossack.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitHawaiBlack
+  name: black hawaiian shirt
+  description: Black as a starry night.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/hawaiblack.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/hawaiblack.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitHawaiBlue
+  name: blue hawaiian shirt
+  description: Blue as a huge ocean.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/hawaiblue.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/hawaiblue.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitHawaiRed
+  name: red hawaiian shirt
+  description: Red as a juicy watermelons.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/hawaired.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/hawaired.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformJumpsuitHawaiYellow
+  name: yellow hawaiian shirt
+  description: Yellow as a bright sun.
+  components:
+  - type: Sprite
+    sprite: Clothing/Uniforms/Jumpsuit/hawaiyellow.rsi
+  - type: Clothing
+    sprite: Clothing/Uniforms/Jumpsuit/hawaiyellow.rsi

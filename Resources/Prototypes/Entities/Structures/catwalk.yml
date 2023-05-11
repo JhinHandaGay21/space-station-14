@@ -21,7 +21,12 @@
     base: catwalk_
   - type: FootstepModifier
     footstepSoundCollection:
-      collection: footstep_catwalk
+      collection: FootstepCatwalk
+      params:
+        volume: 8
+  - type: Tag
+    tags:
+      - Catwalk
   - type: Construction
     graph: Catwalk
     node: Catwalk

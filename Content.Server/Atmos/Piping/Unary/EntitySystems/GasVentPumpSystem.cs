@@ -1,13 +1,12 @@
 using Content.Server.Atmos.EntitySystems;
-using Content.Server.Atmos.Monitor.Components;
 using Content.Server.Atmos.Monitor.Systems;
 using Content.Server.Atmos.Piping.Components;
 using Content.Server.Atmos.Piping.Unary.Components;
+using Content.Server.DeviceLinking.Events;
+using Content.Server.DeviceLinking.Systems;
 using Content.Server.DeviceNetwork;
 using Content.Server.DeviceNetwork.Components;
 using Content.Server.DeviceNetwork.Systems;
-using Content.Server.MachineLinking.Events;
-using Content.Server.MachineLinking.System;
 using Content.Server.NodeContainer;
 using Content.Server.NodeContainer.Nodes;
 using Content.Server.Power.Components;
@@ -18,6 +17,7 @@ using Content.Shared.Atmos.Visuals;
 using Content.Shared.Audio;
 using Content.Shared.Examine;
 using JetBrains.Annotations;
+using Robust.Server.GameObjects;
 using Robust.Shared.Timing;
 
 namespace Content.Server.Atmos.Piping.Unary.EntitySystems
@@ -27,9 +27,10 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
     {
         [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
         [Dependency] private readonly DeviceNetworkSystem _deviceNetSystem = default!;
-        [Dependency] private readonly SignalLinkerSystem _signalSystem = default!;
+        [Dependency] private readonly DeviceLinkSystem _signalSystem = default!;
         [Dependency] private readonly IGameTiming _gameTiming = default!;
         [Dependency] private readonly SharedAmbientSoundSystem _ambientSoundSystem = default!;
+        [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
 
         public override void Initialize()
         {
@@ -38,12 +39,13 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
             SubscribeLocalEvent<GasVentPumpComponent, AtmosDeviceUpdateEvent>(OnGasVentPumpUpdated);
             SubscribeLocalEvent<GasVentPumpComponent, AtmosDeviceDisabledEvent>(OnGasVentPumpLeaveAtmosphere);
             SubscribeLocalEvent<GasVentPumpComponent, AtmosDeviceEnabledEvent>(OnGasVentPumpEnterAtmosphere);
-            SubscribeLocalEvent<GasVentPumpComponent, AtmosMonitorAlarmEvent>(OnAtmosAlarm);
+            SubscribeLocalEvent<GasVentPumpComponent, AtmosAlarmEvent>(OnAtmosAlarm);
             SubscribeLocalEvent<GasVentPumpComponent, PowerChangedEvent>(OnPowerChanged);
             SubscribeLocalEvent<GasVentPumpComponent, DeviceNetworkPacketEvent>(OnPacketRecv);
             SubscribeLocalEvent<GasVentPumpComponent, ComponentInit>(OnInit);
             SubscribeLocalEvent<GasVentPumpComponent, ExaminedEvent>(OnExamine);
             SubscribeLocalEvent<GasVentPumpComponent, SignalReceivedEvent>(OnSignalReceived);
+            SubscribeLocalEvent<GasVentPumpComponent, GasAnalyzerScanEvent>(OnAnalyzed);
         }
 
         private void OnGasVentPumpUpdated(EntityUid uid, GasVentPumpComponent vent, AtmosDeviceUpdateEvent args)
@@ -85,15 +87,18 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
                 if (environment.Pressure > vent.MaxPressure)
                     return;
 
-                if (environment.Pressure < vent.UnderPressureLockoutThreshold)
-                {
-                    vent.UnderPressureLockout = true;
-                    return;
-                }
-                vent.UnderPressureLockout = false;
+                vent.UnderPressureLockout = (environment.Pressure < vent.UnderPressureLockoutThreshold);
 
                 if ((vent.PressureChecks & VentPressureBound.ExternalBound) != 0)
-                    pressureDelta = MathF.Min(pressureDelta, vent.ExternalPressureBound - environment.Pressure);
+                {
+                    // Vents cannot supply high pressures from an almost empty pipe, instead it's proportional to the pipe
+                    //   pressure, up to a limit.
+                    // This also means supply pipe pressure indicates minimum pressure on the station, with lower pressure
+                    //   sections getting air first.
+                    var supplyPressure = MathF.Min(pipe.Air.Pressure * vent.PumpPower, vent.ExternalPressureBound);
+                    // Calculate the ratio of supply pressure to current pressure.
+                    pressureDelta = MathF.Min(pressureDelta, supplyPressure - environment.Pressure);
+                }
 
                 if (pressureDelta <= 0)
                     return;
@@ -101,6 +106,15 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
                 // how many moles to transfer to change external pressure by pressureDelta
                 // (ignoring temperature differences because I am lazy)
                 var transferMoles = pressureDelta * environment.Volume / (pipe.Air.Temperature * Atmospherics.R);
+
+                if (vent.UnderPressureLockout)
+                {
+                    // Leak only a small amount of gas as a proportion of supply pipe pressure.
+                    var pipeDelta = pipe.Air.Pressure - environment.Pressure;
+                    transferMoles = (float)timeDelta * pipeDelta * vent.UnderPressureLockoutLeaking;
+                    if (transferMoles < 0.0)
+                        return;
+                }
 
                 // limit transferMoles so the source doesn't go below its bound.
                 if ((vent.PressureChecks & VentPressureBound.InternalBound) != 0)
@@ -158,13 +172,13 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
             UpdateState(uid, component);
         }
 
-        private void OnAtmosAlarm(EntityUid uid, GasVentPumpComponent component, AtmosMonitorAlarmEvent args)
+        private void OnAtmosAlarm(EntityUid uid, GasVentPumpComponent component, AtmosAlarmEvent args)
         {
-            if (args.HighestNetworkType == AtmosMonitorAlarmType.Danger)
+            if (args.AlarmType == AtmosAlarmType.Danger)
             {
                 component.Enabled = false;
             }
-            else if (args.HighestNetworkType == AtmosMonitorAlarmType.Normal)
+            else if (args.AlarmType == AtmosAlarmType.Normal)
             {
                 component.Enabled = true;
             }
@@ -172,7 +186,7 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
             UpdateState(uid, component);
         }
 
-        private void OnPowerChanged(EntityUid uid, GasVentPumpComponent component, PowerChangedEvent args)
+        private void OnPowerChanged(EntityUid uid, GasVentPumpComponent component, ref PowerChangedEvent args)
         {
             component.Enabled = args.Powered;
             UpdateState(uid, component);
@@ -181,7 +195,6 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
         private void OnPacketRecv(EntityUid uid, GasVentPumpComponent component, DeviceNetworkPacketEvent args)
         {
             if (!EntityManager.TryGetComponent(uid, out DeviceNetworkComponent? netConn)
-                || !EntityManager.TryGetComponent(uid, out AtmosAlarmableComponent? alarmable)
                 || !args.Data.TryGetValue(DeviceNetworkConstants.Command, out var cmd))
                 return;
 
@@ -189,24 +202,19 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
 
             switch (cmd)
             {
-                case AirAlarmSystem.AirAlarmSyncCmd:
-                    payload.Add(DeviceNetworkConstants.Command, AirAlarmSystem.AirAlarmSyncData);
-                    payload.Add(AirAlarmSystem.AirAlarmSyncData, component.ToAirAlarmData());
+                case AtmosDeviceNetworkSystem.SyncData:
+                    payload.Add(DeviceNetworkConstants.Command, AtmosDeviceNetworkSystem.SyncData);
+                    payload.Add(AtmosDeviceNetworkSystem.SyncData, component.ToAirAlarmData());
 
                     _deviceNetSystem.QueuePacket(uid, args.SenderAddress, payload, device: netConn);
 
                     return;
-                case AirAlarmSystem.AirAlarmSetData:
-                    if (!args.Data.TryGetValue(AirAlarmSystem.AirAlarmSetData, out GasVentPumpData? setData))
+                case DeviceNetworkConstants.CmdSetState:
+                    if (!args.Data.TryGetValue(DeviceNetworkConstants.CmdSetState, out GasVentPumpData? setData))
                         break;
 
                     component.FromAirAlarmData(setData);
                     UpdateState(uid, component);
-                    alarmable.IgnoreAlarms = setData.IgnoreAlarms;
-                    payload.Add(DeviceNetworkConstants.Command, AirAlarmSystem.AirAlarmSetDataStatus);
-                    payload.Add(AirAlarmSystem.AirAlarmSetDataStatus, true);
-
-                    _deviceNetSystem.QueuePacket(uid, null, payload, device: netConn);
 
                     return;
             }
@@ -215,10 +223,10 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
         private void OnInit(EntityUid uid, GasVentPumpComponent component, ComponentInit args)
         {
             if (component.CanLink)
-                _signalSystem.EnsureReceiverPorts(uid, component.PressurizePort, component.DepressurizePort);
+                _signalSystem.EnsureSinkPorts(uid, component.PressurizePort, component.DepressurizePort);
         }
 
-        private void OnSignalReceived(EntityUid uid, GasVentPumpComponent component, SignalReceivedEvent args)
+        private void OnSignalReceived(EntityUid uid, GasVentPumpComponent component, ref SignalReceivedEvent args)
         {
             if (!component.CanLink)
                 return;
@@ -248,20 +256,20 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
             if (!vent.Enabled)
             {
                 _ambientSoundSystem.SetAmbience(uid, false);
-                appearance.SetData(VentPumpVisuals.State, VentPumpState.Off);
+                _appearance.SetData(uid, VentPumpVisuals.State, VentPumpState.Off, appearance);
             }
             else if (vent.PumpDirection == VentPumpDirection.Releasing)
             {
-                appearance.SetData(VentPumpVisuals.State, VentPumpState.Out);
+                _appearance.SetData(uid, VentPumpVisuals.State, VentPumpState.Out, appearance);
             }
             else if (vent.PumpDirection == VentPumpDirection.Siphoning)
             {
-                appearance.SetData(VentPumpVisuals.State, VentPumpState.In);
+                _appearance.SetData(uid, VentPumpVisuals.State, VentPumpState.In, appearance);
             }
             else if (vent.Welded)
             {
                 _ambientSoundSystem.SetAmbience(uid, false);
-                appearance.SetData(VentPumpVisuals.State, VentPumpState.Welded);
+                _appearance.SetData(uid, VentPumpVisuals.State, VentPumpState.Welded, appearance);
             }
         }
 
@@ -276,6 +284,29 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
                     args.PushMarkup(Loc.GetString("gas-vent-pump-uvlo"));
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns the gas mixture for the gas analyzer
+        /// </summary>
+        private void OnAnalyzed(EntityUid uid, GasVentPumpComponent component, GasAnalyzerScanEvent args)
+        {
+            if (!EntityManager.TryGetComponent(uid, out NodeContainerComponent? nodeContainer))
+                return;
+
+            var gasMixDict = new Dictionary<string, GasMixture?>();
+
+            // these are both called pipe, above it switches using this so I duplicated that...?
+            var nodeName = component.PumpDirection switch
+            {
+                VentPumpDirection.Releasing => component.Inlet,
+                VentPumpDirection.Siphoning => component.Outlet,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            if(nodeContainer.TryGetNode(nodeName, out PipeNode? pipe))
+                gasMixDict.Add(nodeName, pipe.Air);
+
+            args.GasMixtures = gasMixDict;
         }
     }
 }

@@ -20,7 +20,15 @@
   - type: Item
     size: 10
     sprite: Objects/Tools/welder.rsi
-    heldPrefix: off
+  - type: ToggleableLightVisuals
+    spriteLayer: flame
+    inhandVisuals:
+      left:
+      - state: inhand-left-flame
+        shader: unshaded
+      right:
+      - state: inhand-right-flame
+        shader: unshaded
   - type: ItemCooldown
   - type: MeleeWeapon
     damage:
@@ -46,10 +54,19 @@
         Heat: 10
         Blunt: -10
   - type: PointLight
+    netsync: false
     enabled: false
     radius: 1.5
     color: orange
   - type: Appearance
+  - type: RequiresEyeProtection
+  - type: PhysicalComposition
+    materialComposition:
+      Steel: 200
+  - type: StaticPrice
+    price: 40
+  - type: IgnitionSource
+    temperature: 700
 
 - type: entity
   name: industrial welding tool
@@ -110,6 +127,12 @@
     enabled: false
     radius: 1.5
     color: lightblue
+  - type: SolutionRegeneration
+    solution: Welder
+    generated:
+      reagents:
+      - ReagentId: WeldingFuel
+        Quantity: 1
 
 - type: entity
   name: emergency welding tool
@@ -120,6 +143,7 @@
   - type: Sprite
     sprite: Objects/Tools/welder_mini.rsi
   - type: Item
+    size: 5
     sprite: Objects/Tools/welder_mini.rsi
   - type: RefillableSolution
     solution: Welder

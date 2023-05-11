@@ -2,6 +2,7 @@ using Content.Shared.Hands.Components;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Standing;
 using Content.Shared.Throwing;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Random;
 
 namespace Content.Server.Standing;
@@ -20,7 +21,7 @@ public sealed class StandingStateSystem : EntitySystem
         var fellEvent = new FellDownEvent(uid);
         RaiseLocalEvent(uid, fellEvent, false);
 
-        if (!TryComp(uid, out SharedHandsComponent? handsComp))
+        if (!TryComp(uid, out HandsComponent? handsComp))
             return;
 
         var worldRotation = EntityManager.GetComponent<TransformComponent>(uid).WorldRotation.ToVec();
@@ -49,7 +50,7 @@ public sealed class StandingStateSystem : EntitySystem
 
     /// <summary>
     /// Raised after an entity falls down.
-    /// <summary>
+    /// </summary>
     public sealed class FellDownEvent : EntityEventArgs
     {
         public EntityUid Uid { get; }

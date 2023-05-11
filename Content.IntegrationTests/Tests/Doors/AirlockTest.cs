@@ -1,12 +1,14 @@
 using System;
 using System.Threading.Tasks;
-using Content.Server.Doors.Components;
 using Content.Server.Doors.Systems;
 using Content.Shared.Doors.Components;
 using NUnit.Framework;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Maths;
 using Robust.Shared.Physics;
+using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Systems;
 
 namespace Content.IntegrationTests.Tests.Doors
 {
@@ -23,11 +25,12 @@ namespace Content.IntegrationTests.Tests.Doors
     bodyType: Dynamic
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeCircle
-          bounds: ""-0.49,-0.49,0.49,0.49""
-      layer:
-      - Impassable
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+            bounds: ""-0.49,-0.49,0.49,0.49""
+        layer:
+        - Impassable
 
 - type: entity
   name: AirlockDummy
@@ -35,15 +38,18 @@ namespace Content.IntegrationTests.Tests.Doors
   components:
   - type: Door
   - type: Airlock
+  - type: ApcPowerReceiver
+    needsPower: false
   - type: Physics
     bodyType: Static
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeAabb
-          bounds: ""-0.49,-0.49,0.49,0.49""
-      mask:
-      - Impassable
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+            bounds: ""-0.49,-0.49,0.49,0.49""
+        mask:
+        - Impassable
 ";
         [Test]
         public async Task OpenCloseDestroyTest()
@@ -51,16 +57,14 @@ namespace Content.IntegrationTests.Tests.Doors
             await using var pairTracker = await PoolManager.GetServerClient(new PoolSettings{NoClient = true, ExtraPrototypes = Prototypes});
             var server = pairTracker.Pair.Server;
 
-            var mapManager = server.ResolveDependency<IMapManager>();
             var entityManager = server.ResolveDependency<IEntityManager>();
+            var doors = entityManager.EntitySysManager.GetEntitySystem<DoorSystem>();
 
             EntityUid airlock = default;
             DoorComponent doorComponent = null;
 
             await server.WaitAssertion(() =>
             {
-                mapManager.CreateNewMapEntity(MapId.Nullspace);
-
                 airlock = entityManager.SpawnEntity("AirlockDummy", MapCoordinates.Nullspace);
 
                 Assert.True(entityManager.TryGetComponent(airlock, out doorComponent));
@@ -71,7 +75,7 @@ namespace Content.IntegrationTests.Tests.Doors
 
             await server.WaitAssertion(() =>
             {
-                EntitySystem.Get<DoorSystem>().StartOpening(airlock);
+                doors.StartOpening(airlock);
                 Assert.That(doorComponent.State, Is.EqualTo(DoorState.Opening));
             });
 
@@ -83,7 +87,7 @@ namespace Content.IntegrationTests.Tests.Doors
 
             await server.WaitAssertion(() =>
             {
-                EntitySystem.Get<DoorSystem>().TryClose((EntityUid) airlock);
+                doors.TryClose(airlock);
                 Assert.That(doorComponent.State, Is.EqualTo(DoorState.Closing));
             });
 
@@ -114,8 +118,9 @@ namespace Content.IntegrationTests.Tests.Doors
 
             var mapManager = server.ResolveDependency<IMapManager>();
             var entityManager = server.ResolveDependency<IEntityManager>();
+            var physicsSystem = entityManager.System<SharedPhysicsSystem>();
 
-            IPhysBody physBody = null;
+            PhysicsComponent physBody = null;
             EntityUid physicsDummy = default;
             EntityUid airlock = default;
             DoorComponent doorComponent = null;
@@ -140,13 +145,19 @@ namespace Content.IntegrationTests.Tests.Doors
             await server.WaitIdleAsync();
 
             // Push the human towards the airlock
-            await server.WaitAssertion(() => Assert.That(physBody != null));
-            await server.WaitPost(() => physBody.LinearVelocity = (0.5f, 0));
+            await server.WaitAssertion(() => Assert.That(physBody, Is.Not.EqualTo(null)));
+            await server.WaitPost(() =>
+            {
+                physicsSystem.SetLinearVelocity(physicsDummy, new Vector2(0.5f, 0f), body: physBody);
+            });
 
             for (var i = 0; i < 240; i += 10)
             {
                 // Keep the airlock awake so they collide
-                await server.WaitPost(() => entityManager.GetComponent<IPhysBody>(airlock).WakeBody());
+                await server.WaitPost(() =>
+                {
+                    physicsSystem.WakeBody(airlock);
+                });
 
                 await server.WaitRunTicks(10);
                 await server.WaitIdleAsync();

@@ -15,12 +15,10 @@
   - type: MeleeWeapon
     damage:
       types:
-        Blunt: 5
-    range: 1.5
-    arcwidth: 60
-    arc: default
-    cooldownTime: 1.5
-    arcCooldownTime: 1.5
+        Blunt: 7
+    bluntStaminaDamageFactor: 2.0
+    angle: 60
+    animation: WeaponArcSlash
   - type: StaminaDamageOnHit
     damage: 55
   - type: Battery
@@ -28,10 +26,10 @@
     startingCharge: 1000
   - type: ItemCooldown
   - type: Item
+    heldPrefix: off
     size: 20
   - type: Clothing
     sprite: Objects/Weapons/Melee/stunbaton.rsi
-    heldPrefix: off
     quickEquip: false
     slots:
     - Belt
@@ -44,6 +42,8 @@
         enum.ToggleVisuals.Layer:
           True: {state: stunbaton_on}
           False: {state: stunbaton_off}
+  - type: StaticPrice
+    price: 100
 
 - type: entity
   name: flash
@@ -53,19 +53,38 @@
   components:
     - type: Sprite
       sprite: Objects/Weapons/Melee/flash.rsi
-      state: flash
+      layers:
+      - state: flash
+        map: [ "enum.FlashVisuals.BaseLayer" ]
+      - state: flashing
+        map: [ "enum.FlashVisuals.LightLayer" ]
+        visible: false
+        shader: unshaded
     - type: Flash
+    - type: LimitedCharges
+      maxCharges: 5
+      charges: 5
     - type: MeleeWeapon
       damage:
         types:
-          Blunt: 0 # why is this classed as a melee weapon? Is it needed for some interaction?
-      range: 1
-      arcWidth: 10
-      arc: default
+          Blunt: 0 # melee weapon to allow flashing individual targets
+      angle: 10
     - type: Item
       size: 5
       sprite: Objects/Weapons/Melee/flash.rsi
     - type: ItemCooldown
+    - type: StaticPrice
+      price: 40
+    - type: Appearance
+    - type: GenericVisualizer
+      visuals:
+        enum.FlashVisuals.Burnt:
+          enum.FlashVisuals.BaseLayer:
+            True: {state: burnt}
+        enum.FlashVisuals.Flashing:
+          enum.FlashVisuals.LightLayer:
+            True: {visible: true}
+            False: {visible: false}
 
 - type: entity
   name: portable flasher
@@ -96,14 +115,15 @@
     - type: Physics
     - type: Fixtures
       fixtures:
-      - shape:
-          !type:PhysShapeAabb
-          bounds: "-0.15,-0.3,0.15,0.3"
-        mask:
-        - MachineMask
-        layer:
-        - MachineLayer
-        mass: 70
+        fix1:
+          shape:
+            !type:PhysShapeAabb
+            bounds: "-0.15,-0.3,0.15,0.3"
+          mask:
+          - MachineMask
+          layer:
+          - MachineLayer
+          density: 380
     - type: Appearance
     - type: AnimationPlayer
     - type: PointLight
@@ -111,4 +131,3 @@
       radius: 0
       softness: 0
       enabled: true
-

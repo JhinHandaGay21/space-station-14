@@ -40,17 +40,18 @@
       enabled: false
     - type: Fixtures
       fixtures:
-        - shape:
+        slips:
+          shape:
             !type:PhysShapeAabb
             bounds: "-0.2,-0.2,0.2,0.2"
-          id: "slips"
           hard: false
           layer:
             - LowImpassable
-        - shape:
+        fix1:
+          shape:
             !type:PhysShapeAabb
             bounds: "-0.2,-0.2,0.2,0.2"
-          mass: 5
+          density: 30
           mask:
             - ItemMask
     - type: Rotatable

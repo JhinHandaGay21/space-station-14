@@ -48,7 +48,8 @@ namespace Content.Client.RoundEnd
 
             var roundEndSummaryContainerScrollbox = new ScrollContainer
             {
-                VerticalExpand = true
+                VerticalExpand = true,
+                Margin = new Thickness(10)
             };
             var roundEndSummaryContainer = new BoxContainer
             {
@@ -96,7 +97,8 @@ namespace Content.Client.RoundEnd
 
             var playerInfoContainerScrollbox = new ScrollContainer
             {
-                VerticalExpand = true
+                VerticalExpand = true,
+                Margin = new Thickness(10)
             };
             var playerInfoContainer = new BoxContainer
             {
@@ -120,13 +122,14 @@ namespace Content.Client.RoundEnd
                     VerticalExpand = true,
                 };
 
-                if (_entityManager.TryGetComponent(playerInfo.PlayerEntityUid, out ISpriteComponent? sprite))
+                if (_entityManager.TryGetComponent(playerInfo.PlayerEntityUid, out SpriteComponent? sprite))
                 {
                     hBox.AddChild(new SpriteView
                     {
                         Sprite = sprite,
                         OverrideDirection = Direction.South,
                         VerticalAlignment = VAlignment.Center,
+                        SetSize = (32, 32),
                         VerticalExpand = true,
                     });
                 }

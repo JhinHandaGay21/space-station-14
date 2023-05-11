@@ -4,7 +4,7 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototy
 
 namespace Content.Server.Magic.Events;
 
-public sealed class InstantSpawnSpellEvent : InstantActionEvent
+public sealed class InstantSpawnSpellEvent : InstantActionEvent, ISpeakSpell
 {
     /// <summary>
     /// What entity should be spawned.
@@ -12,8 +12,11 @@ public sealed class InstantSpawnSpellEvent : InstantActionEvent
     [DataField("prototype", required: true, customTypeSerializer: typeof(PrototypeIdSerializer<EntityPrototype>))]
     public string Prototype = default!;
 
-    [ViewVariables, DataField("preventCollide")]
+    [DataField("preventCollide")]
     public bool PreventCollideWithCaster = true;
+
+    [DataField("speech")]
+    public string? Speech { get; }
 
     /// <summary>
     /// Gets the targeted spawn positons; may lead to multiple entities being spawned.

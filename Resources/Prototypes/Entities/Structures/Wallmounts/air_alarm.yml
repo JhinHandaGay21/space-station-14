@@ -13,24 +13,28 @@
     deviceNetId: AtmosDevices
     receiveFrequencyId: AtmosMonitor
     transmitFrequencyId: AtmosMonitor
+    prefix: device-address-prefix-air-alarm
     sendBroadcastAttemptEvent: true
   - type: WiredNetworkConnection
   - type: DeviceList
-  - type: AtmosMonitor
-    temperatureThreshold: stationTemperature
-    pressureThreshold: stationPressure
-    gasThresholds:
-      Oxygen: stationOxygen
-      Nitrogen: ignore
-      CarbonDioxide: stationCO2
-      Plasma: danger # everything below is usually bad
-      Tritium: danger
-      WaterVapor: danger
-      Miasma: danger
-      NitrousOxide: danger
-      Frezon: danger
+  - type: DeviceNetworkRequiresPower
   - type: AtmosAlarmable
-    alarmedBy: ["AirAlarm"]
+    syncWith:
+      - AirAlarm
+      - AirSensor
+      - GasVent
+      - GasScrubber
+  - type: AtmosAlarmableVisuals
+    layerMap: "airAlarmBase"
+    alarmStates:
+      Normal: alarm0
+      Warning: alarm1  # Corvax-Resprite
+      Danger: alarm2 # Corvax-Resprite
+    setOnDepowered:
+      airAlarmBase: alarmp
+  - type: Tag
+    tags:
+      - AirAlarm
   - type: AtmosDevice
   - type: AirAlarm
   - type: Clickable
@@ -47,16 +51,7 @@
   - type: AccessReader
     access: [["Atmospherics"]]
   - type: Appearance
-    visuals:
-    - type: AtmosMonitorVisualizer
-      layerMap: "airAlarmBase"
-      alarmStates:
-        Normal: alarm0
-        Warning: alarm1
-        Danger: alarm2
-      setOnDepowered:
-        airAlarmBase: alarmp
-    - type: WiresVisualizer
+  - type: WiresVisuals
   - type: Sprite
     sprite: Structures/Wallmounts/air_monitors.rsi
     layers:
@@ -69,6 +64,26 @@
   - type: Construction
     graph: AirAlarm
     node: air_alarm
+  - type: Damageable
+    damageContainer: Inorganic
+    damageModifierSet: Metallic
+  - type: Destructible
+    thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 200
+        behaviors:
+          - !type:DoActsBehavior
+            acts: [ "Destruction" ]
+      - trigger:
+          !type:DamageTrigger
+          damage: 100
+        behaviors:
+          - !type:DoActsBehavior
+            acts: [ "Destruction" ]
+          - !type:PlaySoundBehavior
+            sound:
+              path: /Audio/Effects/metalbreak.ogg
   placement:
     mode: SnapgridCenter
     snap:
@@ -84,10 +99,21 @@
   - type: InteractionOutline
   - type: Sprite
     sprite: Structures/Wallmounts/air_monitors.rsi
-    state: alarm_b1
+    layers:
+    - state: alarm_b1
+      map: [ "enum.ConstructionVisuals.Layer" ]
+  - type: Appearance
+  - type: GenericVisualizer
+    visuals:
+      enum.ConstructionVisuals.Key:
+        enum.ConstructionVisuals.Layer:
+          assembly: { state: alarm_b1 }
+          electronics: { state: alarm_b1 }
   - type: Construction
     graph: AirAlarm
     node: assembly
+  - type: Transform
+    anchored: true
   placement:
     mode: SnapgridCenter
     snap:

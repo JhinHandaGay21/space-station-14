@@ -1,5 +1,5 @@
 using Content.Client.Computer;
-using Content.Client.UserInterface;
+using Content.Client.UserInterface.Controls;
 using Content.Shared.Shuttles.BUIStates;
 using Content.Shared.Shuttles.Components;
 using Content.Shared.Shuttles.Systems;
@@ -9,6 +9,7 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Map;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
@@ -51,8 +52,8 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
         _entManager = IoCManager.Resolve<IEntityManager>();
         _timing = IoCManager.Resolve<IGameTiming>();
 
-        OnRadarRangeChange(RadarScreen.RadarRange);
-        RadarScreen.OnRadarRangeChanged += OnRadarRangeChange;
+        WorldRangeChange(RadarScreen.WorldRange);
+        RadarScreen.WorldRangeChanged += WorldRangeChange;
 
         IFFToggle.OnToggled += OnIFFTogglePressed;
         IFFToggle.Pressed = RadarScreen.ShowIFF;
@@ -63,7 +64,7 @@ public sealed partial class ShuttleConsoleWindow : FancyWindow,
         UndockButton.OnPressed += OnUndockPressed;
     }
 
-    private void OnRadarRangeChange(float value)
+    private void WorldRangeChange(float value)
     {
         RadarRange.Text = $"{value:0}";
     }

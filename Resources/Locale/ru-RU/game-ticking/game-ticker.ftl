@@ -14,12 +14,23 @@ game-ticker-get-info-text =
     Текущая карта: [color=white]{ $mapName }[/color]
     Текущий режим игры: [color=white]{ $gmTitle }[/color]
     >[color=yellow]{ $desc }[/color]
-game-ticker-no-map-selected = [color=red]Карта не выбрана![/color]
+game-ticker-get-info-preround-text =
+    Привет и добро пожаловать в [color=white]Space Station 14![/color]
+    Текущий раунд: [color=white]#{ $roundId }[/color]
+    Текущее количество игроков: [color=white]{ $playerCount }[/color] ([color=white]{ $readyCount }[/color] { $readyCount ->
+        [one] готов
+       *[other] готовы
+    })
+    Текущая карта: [color=white]{ $mapName }[/color]
+    Текущий режим игры: [color=white]{ $gmTitle }[/color]
+    >[color=yellow]{ $desc }[/color]
+game-ticker-no-map-selected = [color=red]Карта ещё не выбрана![/color]
 game-ticker-player-no-jobs-available-when-joining = При попытке присоединиться к игре ни одной роли не было доступно.
 # Displayed in chat to admins when a player joins
-player-join-message = Игрок { $name } присоединился к серверу!
+player-join-message = Игрок { $name } зашёл!
+player-first-join-message = Игрок { $name } зашёл на сервер впервые.
 # Displayed in chat to admins when a player leaves
-player-leave-message = Игрок { $name } покинул сервер!
+player-leave-message = Игрок { $name } вышел!
 latejoin-arrival-announcement =
     { $character } ({ $job }) { $gender ->
         [male] прибыл
@@ -28,3 +39,4 @@ latejoin-arrival-announcement =
        *[neuter] прибыл
     } на станцию!
 latejoin-arrival-sender = Станции
+latejoin-arrivals-direction = Вскоре прибудет шаттл, который доставит вас на станцию.

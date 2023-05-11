@@ -1,6 +1,4 @@
-ent-CrateSyndicateSurplusBundle = syndicate surplus crate
+ent-CrateSyndicateSurplusBundle = { ent-CrateGenericSteel }
     .desc = { ent-CrateGenericSteel.desc }
-    .suffix = { "" }
-ent-CrateSyndicateSuperSurplusBundle = syndicate super surplus crate
+ent-CrateSyndicateSuperSurplusBundle = { ent-CrateGenericSteel }
     .desc = { ent-CrateGenericSteel.desc }
-    .suffix = { "" }

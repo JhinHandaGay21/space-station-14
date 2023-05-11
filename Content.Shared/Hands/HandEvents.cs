@@ -2,11 +2,17 @@ using Content.Shared.Hands.Components;
 using JetBrains.Annotations;
 using Robust.Shared.Map;
 using Robust.Shared.Serialization;
-using static Robust.Shared.GameObjects.SharedSpriteComponent;
-
 
 namespace Content.Shared.Hands
 {
+    /// <summary>
+    /// Raised directed on an entity when attempting to drop its hand items.
+    /// </summary>
+    public sealed class DropAttemptEvent : CancellableEntityEventArgs
+    {
+        public readonly EntityUid Uid;
+    }
+
     /// <summary>
     ///     Raised directed at an item that needs to update its in-hand sprites/layers.
     /// </summary>
@@ -262,6 +268,20 @@ namespace Content.Shared.Hands
         public string HandName { get; }
 
         public RequestMoveHandItemEvent(string handName)
+        {
+            HandName = handName;
+        }
+    }
+
+    /// <summary>
+    ///     Event raised by a client when they want to alt interact with the item currently in their hands.
+    /// </summary>
+    [Serializable, NetSerializable]
+    public sealed class RequestHandAltInteractEvent : EntityEventArgs
+    {
+        public string HandName { get; }
+
+        public RequestHandAltInteractEvent(string handName)
         {
             HandName = handName;
         }

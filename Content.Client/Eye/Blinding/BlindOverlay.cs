@@ -1,8 +1,10 @@
+using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Shared.Enums;
 using Robust.Shared.Prototypes;
 using Content.Shared.Eye.Blinding;
+using Content.Shared.Eye.Blinding.Components;
 
 namespace Content.Client.Eye.Blinding
 {
@@ -29,6 +31,12 @@ namespace Content.Client.Eye.Blinding
         }
         protected override bool BeforeDraw(in OverlayDrawArgs args)
         {
+            if (!_entityManager.TryGetComponent(_playerManager.LocalPlayer?.ControlledEntity, out EyeComponent? eyeComp))
+                return false;
+
+            if (args.Viewport.Eye != eyeComp.Eye)
+                return false;
+
             var playerEntity = _playerManager.LocalPlayer?.ControlledEntity;
 
             if (playerEntity == null)
@@ -39,7 +47,7 @@ namespace Content.Client.Eye.Blinding
 
             _blindableComponent = blindComp;
 
-            var blind = _blindableComponent.Sources > 0;
+            var blind = _blindableComponent.IsBlind;
 
             if (!blind && _blindableComponent.LightSetup) // Turn FOV back on if we can see again
             {
@@ -70,11 +78,11 @@ namespace Content.Client.Eye.Blinding
 
             var worldHandle = args.WorldHandle;
             var viewport = args.WorldBounds;
-            worldHandle.SetTransform(Matrix3.Identity);
             worldHandle.UseShader(_greyscaleShader);
             worldHandle.DrawRect(viewport, Color.White);
             worldHandle.UseShader(_circleMaskShader);
             worldHandle.DrawRect(viewport, Color.White);
+            worldHandle.UseShader(null);
         }
     }
 }

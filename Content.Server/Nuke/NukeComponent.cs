@@ -1,8 +1,10 @@
 using System.Threading;
+using Content.Server.Explosion.EntitySystems;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Explosion;
 using Content.Shared.Nuke;
 using Robust.Shared.Audio;
+using Robust.Shared.Map;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
 
 namespace Content.Server.Nuke
@@ -77,7 +79,7 @@ namespace Content.Server.Nuke
         public SoundSpecifier DisarmSound = new SoundPathSpecifier("/Audio/Misc/notice2.ogg");
 
         [DataField("armMusic")]
-        public SoundSpecifier ArmMusic = new SoundPathSpecifier("/Audio/StationEvents/countdown.ogg");
+        public SoundSpecifier ArmMusic = new SoundCollectionSpecifier("NukeMusic");
 
         // These datafields here are duplicates of those in explosive component. But I'm hesitant to use explosive
         // component, just in case at some point, somehow, when grenade crafting added in someone manages to wire up a
@@ -122,6 +124,22 @@ namespace Content.Server.Nuke
         #endregion
 
         /// <summary>
+        ///     Origin station of this bomb, if it exists.
+        ///     If this doesn't exist, then the origin grid and map will be filled in, instead.
+        /// </summary>
+        public EntityUid? OriginStation;
+
+        /// <summary>
+        ///     Origin map and grid of this bomb.
+        ///     If a station wasn't tied to a given grid when the bomb was spawned,
+        ///     this will be filled in instead.
+        /// </summary>
+        public (MapId, EntityUid?)? OriginMapGrid;
+
+        [DataField("codeLength")] public int CodeLength = 6;
+        [ViewVariables] public string Code = string.Empty;
+
+        /// <summary>
         ///     Time until explosion in seconds.
         /// </summary>
         [ViewVariables(VVAccess.ReadWrite)]
@@ -155,8 +173,6 @@ namespace Content.Server.Nuke
         ///     Check if nuke has already played last alert sound
         /// </summary>
         public bool PlayedAlertSound = false;
-
-        public CancellationToken? DisarmCancelToken = null;
 
         public IPlayingAudioStream? AlertAudioStream = default;
     }

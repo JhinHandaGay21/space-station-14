@@ -14,15 +14,39 @@
       context: "human"
     - type: MobMover
     - type: InputMover
-    - type: Vocal
-      maleScream: /Audio/Voice/Skeleton/skeleton_scream.ogg
-      femaleScream: /Audio/Voice/Skeleton/skeleton_scream.ogg
     - type: Alerts
     - type: Actions
     - type: Eye
     - type: CameraRecoil
     - type: Examiner
     - type: CanHostGuardian
-    - type: AiFactionTag
+    - type: Faction
       factions:
         - NanoTrasen
+
+- type: entity
+  name: Skeleton Pirate
+  parent: MobSkeletonPerson
+  id: MobSkeletonPirate
+  components:
+  - type: GhostRole
+    name: ghost-role-information-skeleton-pirate-name
+    description: ghost-role-information-skeleton-pirate-description
+  - type: GhostTakeoverAvailable
+  - type: Loadout
+    prototypes: [PirateGear]
+  - type: RandomHumanoidAppearance
+
+
+- type: entity
+  name: Skeleton Biker
+  parent: MobSkeletonPerson
+  id: MobSkeletonBiker
+  components:
+  - type: GhostRole
+    name: ghost-role-information-skeleton-biker-name
+    description: ghost-role-information-skeleton-biker-description
+  - type: GhostTakeoverAvailable
+  - type: Loadout
+    prototypes: [SkeletonBiker]
+  - type: RandomHumanoidAppearance

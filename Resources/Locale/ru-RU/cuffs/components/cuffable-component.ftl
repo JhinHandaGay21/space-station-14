@@ -1,6 +1,9 @@
 cuffable-component-cannot-interact-message = Вы не можете этого сделать!
 cuffable-component-cannot-remove-cuffs-too-far-message = Вы слишком далеко, чтобы снять наручники.
-cuffable-component-start-removing-cuffs-message = Вы начинаете снимать наручники.
+cuffable-component-start-uncuffing-self = Вы начинаете расковывать себя.
+cuffable-component-start-uncuffing-observer = { $user } начинает расковывать { $target }!
+cuffable-component-start-uncuffing-target-message = Вы начинаете расковывать { $targetName }.
+cuffable-component-start-uncuffing-by-other-message = { $otherName } начинает расковывать вас!
 cuffable-component-remove-cuffs-success-message = Вы успешно снимаете наручники.
 cuffable-component-remove-cuffs-by-other-success-message = { $otherName } снимает с вас наручники.
 cuffable-component-remove-cuffs-to-other-partial-success-message =
@@ -23,4 +26,4 @@ cuffable-component-remove-cuffs-partial-success-message =
     } в наручниках.
 cuffable-component-remove-cuffs-fail-message = Вам не удалось снять наручники.
 # UncuffVerb
-uncuff-verb-get-data-text = Расстегнуть
+uncuff-verb-get-data-text = Освободить

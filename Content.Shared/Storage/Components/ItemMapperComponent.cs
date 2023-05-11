@@ -1,5 +1,5 @@
 ﻿using Content.Shared.Storage.EntitySystems;
-using Robust.Shared.Serialization;
+using Robust.Shared.Utility;
 
 namespace Content.Shared.Storage.Components
 {
@@ -54,17 +54,18 @@ namespace Content.Shared.Storage.Components
     /// </summary>
     [RegisterComponent]
     [Access(typeof(SharedItemMapperSystem))]
-    public sealed class ItemMapperComponent : Component, ISerializationHooks
+    public sealed class ItemMapperComponent : Component
     {
         [DataField("mapLayers")] public readonly Dictionary<string, SharedMapLayerData> MapLayers = new();
 
-        void ISerializationHooks.AfterDeserialization()
-        {
-            foreach (var (layerName, val) in MapLayers)
-            {
-                val.Layer = layerName;
-            }
-        }
+        [DataField("sprite")] public ResPath? RSIPath;
 
+        /// <summary>
+        ///     If this exists, shown layers will only consider entities in the given containers.
+        /// </summary>
+        [DataField("containerWhitelist")]
+        public HashSet<string>? ContainerWhitelist;
+
+        public readonly List<string> SpriteLayers = new();
     }
 }

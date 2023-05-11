@@ -34,8 +34,8 @@ public abstract class ActionType : IEquatable<ActionType>, IComparable, ICloneab
     /// <summary>
     ///     Name to show in UI.
     /// </summary>
-    [DataField("name", required: true)]
-    public string Name = string.Empty;
+    [DataField("name")]
+    public string DisplayName = string.Empty;
 
     /// <summary>
     ///     Description to show in UI. Accepts formatting.
@@ -89,7 +89,7 @@ public abstract class ActionType : IEquatable<ActionType>, IComparable, ICloneab
     public EntityUid? Provider;
 
     /// <summary>
-    ///     Entity to use for the action icon. Defaults to using <see cref="Provider"/>. 
+    ///     Entity to use for the action icon. Defaults to using <see cref="Provider"/>.
     /// </summary>
     public EntityUid? EntityIcon
     {
@@ -148,6 +148,8 @@ public abstract class ActionType : IEquatable<ActionType>, IComparable, ICloneab
     /// </remarks>
     [DataField("temporary")]
     public bool Temporary;
+    // TODO re-add support for this
+    // UI refactor seems to have just broken it.
 
     /// <summary>
     ///     Determines the appearance of the entity-icon for actions that are enabled via some entity.
@@ -156,40 +158,10 @@ public abstract class ActionType : IEquatable<ActionType>, IComparable, ICloneab
     public ItemActionIconStyle ItemIconStyle;
 
     /// <summary>
-    ///     If not null, the user will speak these words when performing the action. Convenient feature to have for some
-    ///     actions. Gets passed through localization.
-    /// </summary>
-    [DataField("speech")]
-    public string? Speech;
-
-    /// <summary>
     ///     If not null, this sound will be played when performing this action.
     /// </summary>
     [DataField("sound")]
     public SoundSpecifier? Sound;
-
-    [DataField("audioParams")]
-    public AudioParams? AudioParams;
-
-    /// <summary>
-    ///     A pop-up to show the user when performing this action. Gets passed through localization.
-    /// </summary>
-    [DataField("userPopup")]
-    public string? UserPopup;
-
-    /// <summary>
-    ///     A pop-up to show to all players when performing this action. Gets passed through localization.
-    /// </summary>
-    [DataField("popup")]
-    public string? Popup;
-
-    /// <summary>
-    ///     If not null, this string will be appended to the pop-up localization strings when the action was toggled on
-    ///     after execution. Exists to make it easy to have a different pop-up for turning the action on or off (e.g.,
-    ///     combat mode toggle).
-    /// </summary>
-    [DataField("popupToggleSuffix")]
-    public string? PopupToggleSuffix = null;
 
     /// <summary>
     ///     Compares two actions based on their properties. This is used to determine equality when the client requests the
@@ -207,8 +179,8 @@ public abstract class ActionType : IEquatable<ActionType>, IComparable, ICloneab
         if (Priority != otherAction.Priority)
             return otherAction.Priority - Priority;
 
-        var name = FormattedMessage.RemoveMarkup(Loc.GetString(Name));
-        var otherName = FormattedMessage.RemoveMarkup(Loc.GetString(otherAction.Name));
+        var name = FormattedMessage.RemoveMarkup(Loc.GetString(DisplayName));
+        var otherName = FormattedMessage.RemoveMarkup(Loc.GetString(otherAction.DisplayName));
         if (name != otherName)
             return string.Compare(name, otherName, StringComparison.CurrentCulture);
 
@@ -244,7 +216,7 @@ public abstract class ActionType : IEquatable<ActionType>, IComparable, ICloneab
         Priority = toClone.Priority;
         Icon = toClone.Icon;
         IconOn = toClone.IconOn;
-        Name = toClone.Name;
+        DisplayName = toClone.DisplayName;
         Description = toClone.Description;
         Provider = toClone.Provider;
         AttachedEntity = toClone.AttachedEntity;
@@ -257,13 +229,8 @@ public abstract class ActionType : IEquatable<ActionType>, IComparable, ICloneab
         AutoRemove = toClone.AutoRemove;
         ItemIconStyle = toClone.ItemIconStyle;
         CheckCanInteract = toClone.CheckCanInteract;
-        Speech = toClone.Speech;
         UseDelay = toClone.UseDelay;
         Sound = toClone.Sound;
-        AudioParams = toClone.AudioParams;
-        UserPopup = toClone.UserPopup;
-        Popup = toClone.Popup;
-        PopupToggleSuffix = toClone.PopupToggleSuffix;
         ItemIconStyle = toClone.ItemIconStyle;
         _entityIcon = toClone._entityIcon;
     }
@@ -278,7 +245,7 @@ public abstract class ActionType : IEquatable<ActionType>, IComparable, ICloneab
         unchecked
         {
             var hashCode = Priority.GetHashCode();
-            hashCode = (hashCode * 397) ^ Name.GetHashCode();
+            hashCode = (hashCode * 397) ^ DisplayName.GetHashCode();
             hashCode = (hashCode * 397) ^ Provider.GetHashCode();
             return hashCode;
         }

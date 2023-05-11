@@ -2,8 +2,6 @@
   abstract: true
   parent: BaseStructureDynamic
   id: GasCanister
-  name: gas canister
-  description: A canister that can contain any type of gas. It can be attached to connector ports using a wrench.
   components:
     - type: InteractionOutline
     - type: Transform
@@ -11,6 +9,7 @@
     - type: Sprite
       netsync: false
       sprite: Structures/Storage/canister.rsi
+      noRot: true
       layers:
         - state: grey
     - type: Appearance
@@ -24,6 +23,10 @@
           tankInserted:
             False: { state: can-open, visible: false }
             True: { state: can-open, visible: true }
+        enum.GasCanisterVisuals.Locked:
+          locked:
+            False: { state: can-unlocked, shader: "unshaded" }
+            True: { state: can-locked, shader: "unshaded" }
         enum.GasCanisterVisuals.PressureState:
           pressureLight:
             0: { state: can-o0, shader: "unshaded" }
@@ -38,6 +41,12 @@
       thresholds:
         - trigger:
             !type:DamageTrigger
+            damage: 600
+          behaviors:
+            - !type:DoActsBehavior
+              acts: [ "Destruction" ]
+        - trigger:
+            !type:DamageTrigger
             damage: 300
           behaviors:
             - !type:PlaySoundBehavior
@@ -50,6 +59,7 @@
                   max: 1
             - !type:DoActsBehavior
               acts: [ "Destruction" ]
+            - !type:DumpCanisterBehavior
     - type: Damageable
       damageContainer: Inorganic
       damageModifierSet: Metallic
@@ -57,14 +67,15 @@
       bodyType: Dynamic
     - type: Fixtures
       fixtures:
-      - shape:
-          !type:PhysShapeAabb
-          bounds: "-0.25,-0.25,0.25,0.25"
-        mass: 25
-        mask:
-        - MachineMask
-        layer:
-        - MachineLayer
+        fix1:
+          shape:
+            !type:PhysShapeAabb
+            bounds: "-0.25,-0.25,0.25,0.25"
+          density: 190
+          mask:
+          - MachineMask
+          layer:
+          - MachineLayer
     - type: AtmosDevice
       requireAnchored: false
       joinSystem: true
@@ -80,11 +91,16 @@
           volume: 1
     - type: GasPortable
     - type: GasCanister
+    - type: StaticPrice
+      price: 1000
+    - type: AccessReader
+      access: [["Atmospherics"], ["ResearchDirector"]]
+    - type: Lock
+      locked: false
 
 - type: entity
   parent: GasCanister
   id: StorageCanister
-  name: storage canister
   components:
     - type: Sprite
       layers:
@@ -99,9 +115,18 @@
           - 0 # Plasma
           - 0 # Tritium
           - 0 # Water vapor
+          - 0 # Miasma
+          - 0 # N2O
+          - 0 # Frezon
         temperature: 293.15
     - type: Destructible
       thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 600
+        behaviors:
+          - !type:DoActsBehavior
+            acts: [ "Destruction" ]
       - trigger:
           !type:DamageTrigger
           damage: 300
@@ -116,13 +141,13 @@
               max: 1
         - !type:DoActsBehavior
           acts: [ "Destruction" ]
+        - !type:DumpCanisterBehavior
 
 # Filled canisters, contain 1871.71051 moles each
 
 - type: entity
   parent: GasCanister
   id: AirCanister
-  name: air canister
   components:
   - type: Sprite
     layers:
@@ -138,6 +163,12 @@
     thresholds:
     - trigger:
         !type:DamageTrigger
+        damage: 600
+      behaviors:
+        - !type:DoActsBehavior
+          acts: [ "Destruction" ]
+    - trigger:
+        !type:DamageTrigger
         damage: 300
       behaviors:
       - !type:PlaySoundBehavior
@@ -150,11 +181,11 @@
             max: 1
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
+      - !type:DumpCanisterBehavior
 
 - type: entity
   parent: GasCanister
   id: OxygenCanister
-  name: oxygen canister
   components:
   - type: Sprite
     layers:
@@ -169,6 +200,12 @@
     thresholds:
     - trigger:
         !type:DamageTrigger
+        damage: 600
+      behaviors:
+        - !type:DoActsBehavior
+          acts: [ "Destruction" ]
+    - trigger:
+        !type:DamageTrigger
         damage: 300
       behaviors:
       - !type:PlaySoundBehavior
@@ -181,11 +218,11 @@
             max: 1
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
+      - !type:DumpCanisterBehavior
 
 - type: entity
   parent: GasCanister
   id: NitrogenCanister
-  name: nitrogen canister
   components:
     - type: Sprite
       layers:
@@ -201,6 +238,12 @@
       thresholds:
       - trigger:
           !type:DamageTrigger
+          damage: 600
+        behaviors:
+          - !type:DoActsBehavior
+            acts: [ "Destruction" ]
+      - trigger:
+          !type:DamageTrigger
           damage: 300
         behaviors:
         - !type:PlaySoundBehavior
@@ -213,11 +256,11 @@
               max: 1
         - !type:DoActsBehavior
           acts: [ "Destruction" ]
+        - !type:DumpCanisterBehavior
 
 - type: entity
   parent: GasCanister
   id: CarbonDioxideCanister
-  name: carbon dioxide canister
   components:
     - type: Sprite
       layers:
@@ -234,6 +277,12 @@
       thresholds:
       - trigger:
           !type:DamageTrigger
+          damage: 600
+        behaviors:
+          - !type:DoActsBehavior
+            acts: [ "Destruction" ]
+      - trigger:
+          !type:DamageTrigger
           damage: 300
         behaviors:
         - !type:PlaySoundBehavior
@@ -246,11 +295,13 @@
               max: 1
         - !type:DoActsBehavior
           acts: [ "Destruction" ]
+        - !type:DumpCanisterBehavior
+    - type: Lock
+      locked: true
 
 - type: entity
   parent: GasCanister
   id: PlasmaCanister
-  name: plasma canister
   components:
     - type: Sprite
       layers:
@@ -268,6 +319,12 @@
       thresholds:
       - trigger:
           !type:DamageTrigger
+          damage: 600
+        behaviors:
+          - !type:DoActsBehavior
+            acts: [ "Destruction" ]
+      - trigger:
+          !type:DamageTrigger
           damage: 300
         behaviors:
         - !type:PlaySoundBehavior
@@ -281,11 +338,12 @@
         - !type:DoActsBehavior
           acts: [ "Destruction" ]
         - !type:DumpCanisterBehavior
+    - type: Lock
+      locked: true
 
 - type: entity
   parent: GasCanister
   id: TritiumCanister
-  name: tritium canister
   components:
     - type: Sprite
       layers:
@@ -304,6 +362,12 @@
       thresholds:
       - trigger:
           !type:DamageTrigger
+          damage: 600
+        behaviors:
+          - !type:DoActsBehavior
+            acts: [ "Destruction" ]
+      - trigger:
+          !type:DamageTrigger
           damage: 300
         behaviors:
         - !type:PlaySoundBehavior
@@ -316,11 +380,13 @@
               max: 1
         - !type:DoActsBehavior
           acts: [ "Destruction" ]
+        - !type:DumpCanisterBehavior
+    - type: Lock
+      locked: true
 
 - type: entity
   parent: GasCanister
   id: WaterVaporCanister
-  name: water vapor canister
   components:
     - type: Sprite
       layers:
@@ -340,6 +406,12 @@
       thresholds:
       - trigger:
           !type:DamageTrigger
+          damage: 600
+        behaviors:
+          - !type:DoActsBehavior
+            acts: [ "Destruction" ]
+      - trigger:
+          !type:DamageTrigger
           damage: 300
         behaviors:
         - !type:PlaySoundBehavior
@@ -352,11 +424,11 @@
               max: 1
         - !type:DoActsBehavior
           acts: [ "Destruction" ]
+        - !type:DumpCanisterBehavior
 
 - type: entity
   parent: GasCanister
   id: MiasmaCanister
-  name: miasma canister
   components:
     - type: Sprite
       layers:
@@ -377,6 +449,12 @@
       thresholds:
       - trigger:
           !type:DamageTrigger
+          damage: 600
+        behaviors:
+          - !type:DoActsBehavior
+            acts: [ "Destruction" ]
+      - trigger:
+          !type:DamageTrigger
           damage: 300
         behaviors:
         - !type:PlaySoundBehavior
@@ -389,11 +467,13 @@
               max: 1
         - !type:DoActsBehavior
           acts: [ "Destruction" ]
+        - !type:DumpCanisterBehavior
+    - type: Lock
+      locked: true
 
 - type: entity
   parent: GasCanister
   id: NitrousOxideCanister
-  name: nitrous oxide canister
   components:
     - type: Sprite
       layers:
@@ -415,6 +495,12 @@
       thresholds:
       - trigger:
           !type:DamageTrigger
+          damage: 600
+        behaviors:
+          - !type:DoActsBehavior
+            acts: [ "Destruction" ]
+      - trigger:
+          !type:DamageTrigger
           damage: 300
         behaviors:
         - !type:PlaySoundBehavior
@@ -427,12 +513,11 @@
               max: 1
         - !type:DoActsBehavior
           acts: [ "Destruction" ]
+        - !type:DumpCanisterBehavior
 
 - type: entity
   parent: GasCanister
   id: FrezonCanister
-  name: frezon canister
-  description: A coolant with light hallucinogenic properties. Proceed.
   components:
   - type: Sprite
     layers:
@@ -448,10 +533,17 @@
       - 0 # Tritium
       - 0 #  Water vapor
       - 0 # Miasma
+      - 0 # N2O
       - 1871.71051 # Frezon
       temperature: 293.15
   - type: Destructible
     thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 600
+      behaviors:
+        - !type:DoActsBehavior
+          acts: [ "Destruction" ]
     - trigger:
         !type:DamageTrigger
         damage: 300
@@ -466,17 +558,24 @@
             max: 1
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
+      - !type:DumpCanisterBehavior
+  - type: Lock
+    locked: true
 
 # Broke Entities
 
 - type: entity
-  parent: BaseStructure
+  parent: BaseStructureDynamic
   id: GasCanisterBrokenBase
-  name: broken gas canister
-  description: A broken gas canister. Not useless yet, as it can be salvaged for high quality materials.
   components:
     - type: Destructible
       thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 200
+        behaviors:
+          - !type:DoActsBehavior
+            acts: [ "Destruction" ]
       - trigger:
           !type:DamageTrigger
           damage: 100
@@ -502,19 +601,24 @@
       bodyType: Dynamic
     - type: Fixtures
       fixtures:
-      - shape:
-          !type:PhysShapeAabb
-          bounds: "-0.4,-0.3,0.4,0.3"
-        mass: 25
-        mask:
-        - MachineMask
-        layer:
-        - MachineLayer
+        fix1:
+          shape:
+            !type:PhysShapeAabb
+            bounds: "-0.4,-0.3,0.4,0.3"
+          density: 190
+          mask:
+          - MachineMask
+          layer:
+          - MachineLayer
+    - type: PhysicalComposition
+      materialComposition:
+        Steel: 500
+    - type: StaticPrice
+      price: 60
 
 - type: entity
   parent: GasCanisterBrokenBase
   id: StorageCanisterBroken
-  name: broken storage canister
   noSpawn: true
   components:
     - type: Sprite
@@ -523,7 +627,6 @@
 - type: entity
   parent: GasCanisterBrokenBase
   id: AirCanisterBroken
-  name: broken air canister
   noSpawn: true
   components:
   - type: Sprite
@@ -532,7 +635,6 @@
 - type: entity
   parent: GasCanisterBrokenBase
   id: OxygenCanisterBroken
-  name: broken oxygen canister
   noSpawn: true
   components:
   - type: Sprite
@@ -541,7 +643,6 @@
 - type: entity
   parent: GasCanisterBrokenBase
   id: NitrogenCanisterBroken
-  name: broken nitrogen canister
   noSpawn: true
   components:
     - type: Sprite
@@ -550,7 +651,6 @@
 - type: entity
   parent: GasCanisterBrokenBase
   id: CarbonDioxideCanisterBroken
-  name: broken carbon dioxide canister
   noSpawn: true
   components:
     - type: Sprite
@@ -559,7 +659,6 @@
 - type: entity
   parent: GasCanisterBrokenBase
   id: PlasmaCanisterBroken
-  name: broken plasma canister
   noSpawn: true
   components:
     - type: Sprite
@@ -568,7 +667,6 @@
 - type: entity
   parent: GasCanisterBrokenBase
   id: TritiumCanisterBroken
-  name: broken tritium canister
   noSpawn: true
   components:
     - type: Sprite
@@ -586,7 +684,6 @@
 - type: entity
   parent: GasCanisterBrokenBase
   id: MiasmaCanisterBroken
-  name: broken miasma canister
   noSpawn: true
   components:
     - type: Sprite
@@ -595,7 +692,6 @@
 - type: entity
   parent: GasCanisterBrokenBase
   id: NitrousOxideCanisterBroken
-  name: broken nitrous oxide canister
   noSpawn: true
   components:
     - type: Sprite
@@ -604,7 +700,6 @@
 - type: entity
   parent: GasCanisterBrokenBase
   id: FrezonCanisterBroken
-  name: broken frezon canister
   noSpawn: true
   components:
   - type: Sprite

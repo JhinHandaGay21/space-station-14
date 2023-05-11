@@ -26,19 +26,20 @@
     bloodlossHealDamage:
       types:
         Bloodloss:
-          -0.25
+          -1
   - type: InteractionOutline
   - type: Fixtures
     fixtures:
-    - shape:
-        # Circles, cuz rotation of rectangles looks very bad
-        !type:PhysShapeCircle
-        radius: 0.35
-      mass: 20
-      mask:
-      - MobMask
-      layer:
-      - MobLayer
+      fix1:
+        shape:
+          # Circles, cuz rotation of rectangles looks very bad
+          !type:PhysShapeCircle
+          radius: 0.35
+        density: 50
+        mask:
+        - MobMask
+        layer:
+        - MobLayer
   - type: MovementSpeedModifier
     baseWalkSpeed : 4
     baseSprintSpeed : 3
@@ -51,16 +52,16 @@
   - type: Hands
     showInHands: false
   - type: Body
-    template: DroneTemplate
-    preset: DronePreset
+    prototype: Drone
   - type: DoAfter
   - type: Pullable
   - type: Examiner
   - type: Puller
-  - type: Recyclable
-    safe: false
   - type: StandingState
   - type: Alerts
+  - type: Tag
+    tags:
+      - ShoesRequiredStepTriggerImmune
 
 - type: entity
   name: drone
@@ -68,6 +69,7 @@
   parent: PlayerSiliconBase
   components:
   - type: Drone
+  - type: InnateTool
     tools:
       - id: ClothingBackpackSatchelDrone
       - id: trayScanner
@@ -77,12 +79,13 @@
     group: Drone
   - type: Inventory
     templateId: drone
+  - type: InventorySlots
   - type: Strippable
   - type: UserInterface
     interfaces:
     - key: enum.StrippingUiKey.Key
       type: StrippableBoundUserInterface
-  #- type: GhostTakeoverAvailable
+  #- type: GhostRole
   #  makeSentient: true
   #  name: Maintenance Drone
   #  description: Maintain the station. Ignore other beings except drones.
@@ -91,10 +94,15 @@
   #   1. You may not involve yourself in the matters of another being, even if such matters conflict with Law Two or Law Three, unless the other being is another Drone.
   #   2. You may not harm any being, regardless of intent or circumstance.
   #   3. Your goals are to build, maintain, repair, improve, and power to the best of your abilities, You must never actively work against these goals.
+  #- type: GhostTakeoverAvailable
   - type: MovementSpeedModifier
     baseWalkSpeed : 5
     baseSprintSpeed : 5
   - type: MobState
+    allowedStates:
+      - Alive
+      - Dead
+  - type: MobThresholds
     thresholds:
       0: Alive
       60: Dead
@@ -125,14 +133,15 @@
   - type: MovementIgnoreGravity
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeCircle
-        radius: 0.35
-      mass: 20
-      mask:
-      - SmallMobMask
-      layer:
-      - SmallMobLayer
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.35
+        density: 50
+        mask:
+        - SmallMobMask
+        layer:
+        - SmallMobLayer
   - type: Appearance
     visuals:
       - type: GenericEnumVisualizer
@@ -151,7 +160,7 @@
     toggleAction:
       name: action-name-toggle-light
       description: action-description-toggle-light
-      icon: Objects/Tools/flashlight.rsi/flashlight.png
+      icon: { sprite: Objects/Tools/flashlight.rsi, state: flashlight }
       iconOn: Objects/Tools/flashlight.rsi/flashlight-on.png
       event: !type:ToggleActionEvent
   - type: PointLight
@@ -162,6 +171,7 @@
     autoRot: true
   - type: Tag
     tags:
+      - ShoesRequiredStepTriggerImmune
       - CannotSuicide
 
 - type: entity
@@ -169,8 +179,7 @@
   id: Onestar
   parent: PlayerSiliconBase
   components:
-  - type: Drone
-    applyLaws: false
+  - type: InnateTool
     tools:
       - id: WeaponMinigun
       - id: EnergySword
@@ -180,15 +189,20 @@
     interfaces:
     - key: enum.StrippingUiKey.Key
       type: StrippableBoundUserInterface
-  - type: GhostTakeoverAvailable
+  - type: GhostRole
     makeSentient: true
-    name: Onestar Mecha
-    description: You are an experimental mecha created by who-knows-what, all you know is that you have weapons and you detect fleshy moving targets nearby...
-    rules: Use your weapons to cause havok. You are an antagonist.
+    name: ghost-role-information-onestar-mecha-name
+    description: ghost-role-information-onestar-mecha-description
+    rules: ghost-role-information-onestar-mecha-rules
+  - type: GhostTakeoverAvailable
   - type: MovementSpeedModifier
     baseWalkSpeed : 3
     baseSprintSpeed : 2
   - type: MobState
+    allowedStates:
+      - Alive
+      - Dead
+  - type: MobThresholds
     thresholds:
       0: Alive
       1000: Dead
@@ -201,17 +215,21 @@
     - state: onestar_boss_screen
       sprite: Mobs/Silicon/onestar.rsi
       shader: unshaded
+  - type: FootstepModifier
+    footstepSoundCollection:
+      path: /Audio/Mecha/sound_mecha_powerloader_step.ogg
   - type: MovementIgnoreGravity
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeCircle
-        radius: 1
-      mass: 500
-      mask:
-      - LargeMobMask
-      layer:
-      - LargeMobLayer
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 1
+        density: 160
+        mask:
+        - LargeMobMask
+        layer:
+        - MobLayer
   - type: Appearance
     rotate: true
     states:
@@ -220,3 +238,7 @@
       Dead:
         Base: onestar_boss_wrecked
   - type: CombatMode
+  - type: Tag
+    tags:
+      - FootstepSound
+

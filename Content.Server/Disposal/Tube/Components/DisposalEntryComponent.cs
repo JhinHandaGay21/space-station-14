@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Disposal.Unit.Components;
 using Content.Server.Disposal.Unit.EntitySystems;
@@ -6,15 +6,14 @@ using Content.Server.Disposal.Unit.EntitySystems;
 namespace Content.Server.Disposal.Tube.Components
 {
     [RegisterComponent]
-    [ComponentReference(typeof(IDisposalTubeComponent))]
-    [ComponentReference(typeof(DisposalTubeComponent))]
-    public sealed class DisposalEntryComponent : DisposalTubeComponent
+    [Access(typeof(DisposalTubeSystem), typeof(DisposalUnitSystem))]
+    public sealed class DisposalEntryComponent : Component
     {
         [Dependency] private readonly IEntityManager _entMan = default!;
 
         private const string HolderPrototypeId = "DisposalHolder";
 
-        public bool TryInsert(DisposalUnitComponent from)
+        public bool TryInsert(DisposalUnitComponent from, IEnumerable<string>? tags = default)
         {
             var holder = _entMan.SpawnEntity(HolderPrototypeId, _entMan.GetComponent<TransformComponent>(Owner).MapPosition);
             var holderComponent = _entMan.GetComponent<DisposalHolderComponent>(holder);
@@ -27,25 +26,10 @@ namespace Content.Server.Disposal.Tube.Components
             EntitySystem.Get<AtmosphereSystem>().Merge(holderComponent.Air, from.Air);
             from.Air.Clear();
 
-            return EntitySystem.Get<DisposableSystem>().EnterTube((holderComponent).Owner, Owner, holderComponent, null, this);
-        }
+            if (tags != default)
+                holderComponent.Tags.UnionWith(tags);
 
-        protected override Direction[] ConnectableDirections()
-        {
-            return new[] {_entMan.GetComponent<TransformComponent>(Owner).LocalRotation.GetDir()};
-        }
-
-        /// <summary>
-        ///     Ejects contents when they come from the same direction the entry is facing.
-        /// </summary>
-        public override Direction NextDirection(DisposalHolderComponent holder)
-        {
-            if (holder.PreviousDirectionFrom != Direction.Invalid)
-            {
-                return Direction.Invalid;
-            }
-
-            return ConnectableDirections()[0];
+            return EntitySystem.Get<DisposableSystem>().EnterTube((holderComponent).Owner, Owner, holderComponent);
         }
     }
 }

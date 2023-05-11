@@ -1,5 +1,6 @@
 using Robust.Shared.ContentPack;
 using Robust.Shared.Network;
+using Robust.Shared.Serialization;
 using Robust.Shared.Utility;
 
 namespace Content.Shared.Administration;
@@ -18,7 +19,7 @@ public abstract class SharedNetworkResourceManager : IDisposable
     /// <summary>
     ///     The prefix for any and all downloaded network resources.
     /// </summary>
-    private static readonly ResourcePath Prefix = ResourcePath.Root / "Uploaded";
+    private static readonly ResPath Prefix = ResPath.Root / "Uploaded";
 
     protected readonly MemoryContentRoot ContentRoot = new();
 
@@ -37,5 +38,15 @@ public abstract class SharedNetworkResourceManager : IDisposable
         // This is called automatically when the IoCManager's dependency collection is cleared.
         // MemoryContentRoot uses a ReaderWriterLockSlim, which we need to dispose of.
         ContentRoot.Dispose();
+    }
+
+    // TODO REPLAYS
+    // Figure out a way to just directly save NetMessage objects to replays. This just uses IRobustSerializer as a crutch.
+
+    [Serializable, NetSerializable]
+    public sealed class ReplayResourceUploadMsg
+    {
+        public byte[] Data = default!;
+        public ResPath RelativePath = default!;
     }
 }

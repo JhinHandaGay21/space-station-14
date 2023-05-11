@@ -1,13 +1,23 @@
 - type: gamePreset
+  id: Survival
+  alias:
+    - survival
+  name: survival-title
+  showInVote: false # secret
+  description: survival-description
+  rules:
+    - RampingStationEventScheduler
+
+- type: gamePreset
   id: Extended
   alias:
-    - extended
-    - shittersafari
+  - extended
+  - shittersafari
   name: extended-title
   showInVote: false #2boring2vote
   description: extended-description
   rules:
-    - BasicStationEventScheduler
+  - BasicStationEventScheduler
 
 - type: gamePreset
   id: Secret
@@ -43,16 +53,6 @@
     - BasicStationEventScheduler
 
 - type: gamePreset
-  id: Suspicion
-  alias:
-    - suspicion
-    - sus
-  name: suspicion-title
-  description: suspicion-description
-  rules:
-    - Suspicion
-
-- type: gamePreset
   id: Deathmatch
   alias:
     - deathmatch
@@ -61,17 +61,6 @@
   description: death-match-description
   rules:
     - DeathMatch
-
-- type: gamePreset
-  id: TraitorDeathMatch
-  alias:
-    - traitordm
-    - traitordeathmatch
-  name: traitor-death-match-title
-  description: traitor-death-match-description
-  rules:
-    - TraitorDeathMatch
-    - MaxTimeRestart
 
 - type: gamePreset
   id: Nukeops

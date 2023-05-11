@@ -1,3 +1,2 @@
 ent-MobReptilian = Урист МакХэндс Унатх
-    .desc = Жалкая кучка чешуек.
-    .suffix = { "" }
+    .desc = { ent-BaseMobReptilian.desc }

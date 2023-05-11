@@ -1,4 +1,3 @@
-using Content.Server.Power.EntitySystems;
 using Content.Server.Power.NodeGroups;
 using Content.Shared.APC;
 using Robust.Shared.Audio;
@@ -6,7 +5,6 @@ using Robust.Shared.Audio;
 namespace Content.Server.Power.Components;
 
 [RegisterComponent]
-[Access(typeof(ApcSystem))]
 public sealed class ApcComponent : BaseApcNetComponent
 {
     [DataField("onReceiveMessageSound")]
@@ -22,8 +20,7 @@ public sealed class ApcComponent : BaseApcNetComponent
 
     [ViewVariables]
     public bool MainBreakerEnabled = true;
-
-    public bool Emagged = false;
+    public bool HasAccess = false;
 
     public const float HighPowerThreshold = 0.9f;
     public static TimeSpan VisualsChangeDelay = TimeSpan.FromSeconds(1);

@@ -13,8 +13,7 @@
   - node: assembly
     entity: AirAlarmAssembly
     actions:
-    - !type:SpriteStateChange
-      state: alarm_b1
+    - !type:AppearanceChange
     edges:
     - to: wired
       steps:
@@ -23,7 +22,7 @@
         doAfter: 1
     - to: start
       completed:
-      - !type:SpawnPrototype
+      - !type:GivePrototype
         prototype: SheetSteel1
         amount: 2
       - !type:DeleteEntity {}
@@ -45,7 +44,7 @@
         doAfter: 1
     - to: assembly
       completed:
-      - !type:SpawnPrototype
+      - !type:GivePrototype
         prototype: CableApcStack1
         amount: 2
       steps:
@@ -54,8 +53,7 @@
 
   - node: electronics
     actions:
-    - !type:SpriteStateChange
-      state: alarm_b2
+    - !type:AppearanceChange
     edges:
     - to: air_alarm
       steps:
@@ -92,8 +90,7 @@
   - node: assembly
     entity: FireAlarmAssembly
     actions:
-    - !type:SpriteStateChange
-      state: fire_b1
+    - !type:AppearanceChange
     edges:
     - to: wired
       steps:
@@ -102,7 +99,7 @@
         doAfter: 1
     - to: start
       completed:
-      - !type:SpawnPrototype
+      - !type:GivePrototype
         prototype: SheetSteel1
         amount: 2
       - !type:DeleteEntity {}
@@ -124,7 +121,7 @@
         doAfter: 1
     - to: assembly
       completed:
-      - !type:SpawnPrototype
+      - !type:GivePrototype
         prototype: CableApcStack1
         amount: 2
       steps:
@@ -133,8 +130,7 @@
 
   - node: electronics
     actions:
-    - !type:SpriteStateChange
-      state: fire_b2
+    - !type:AppearanceChange
     edges:
     - to: fire_alarm
       steps:

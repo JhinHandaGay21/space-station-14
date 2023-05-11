@@ -13,14 +13,15 @@
       bodyType: Static
     - type: Fixtures
       fixtures:
-      - shape:
-          !type:PhysShapeAabb
-          bounds: "-0.25,-0.5,0.25,0.5"
-        mass: 25
-        mask:
-        - MachineMask
-        layer:
-        - MachineLayer
+        fix1:
+          shape:
+            !type:PhysShapeAabb
+            bounds: "-0.25,-0.5,0.25,0.5"
+          density: 190
+          mask:
+          - MachineMask
+          layer:
+          - MachineLayer
     - type: Clickable
     - type: InteractionOutline
     - type: Anchorable
@@ -29,6 +30,10 @@
     - type: Construction
       graph: Machine
       node: missingWires
+    - type: ContainerContainer
+      containers:
+        machine_board: !type:Container
+        machine_parts: !type:Container
     - type: Damageable
       damageContainer: Inorganic
       damageModifierSet: Metallic
@@ -60,14 +65,15 @@
       bodyType: Static
     - type: Fixtures
       fixtures:
-      - shape:
-          !type:PhysShapeAabb
-          bounds: "-0.25,-0.5,0.25,0.5"
-        mass: 25
-        mask:
-        - MachineMask
-        layer:
-        - MachineLayer
+        fix1:
+          shape:
+            !type:PhysShapeAabb
+            bounds: "-0.25,-0.5,0.25,0.5"
+          density: 190
+          mask:
+          - MachineMask
+          layer:
+          - MachineLayer
     - type: Clickable
     - type: InteractionOutline
     - type: Anchorable
@@ -76,6 +82,7 @@
     - type: Construction
       graph: Machine
       node: machineFrame
+      defaultTarget: machine
     - type: Damageable
       damageContainer: Inorganic
       damageModifierSet: Metallic
@@ -90,14 +97,22 @@
         - !type:DoActsBehavior
           acts: ["Destruction"]
     - type: MachineFrame
+    - type: ContainerContainer
+      containers:
+        machine_board: !type:Container
+        machine_parts: !type:Container
     - type: Sprite
       netsync: false
       sprite: Structures/Machines/parts.rsi
       state: box_1
     - type: Appearance
-      visuals:
-      - type: MachineFrameVisualizer
-
+    - type: ItemMapper
+      mapLayers:
+        box_2:
+          minCount: 1
+          whitelist:
+            components:
+            - MachineBoard
 
 - type: entity
   id: MachineFrameDestroyed
@@ -109,6 +124,8 @@
     - type: Transform
       anchored: true
       noRot: true
+    - type: Physics
+      bodyType: Static
     - type: Construction
       graph: Machine
       node: destroyedMachineFrame

@@ -1,10 +1,10 @@
-using Robust.Shared.Utility;
+using Content.Client.Actions;
+using Content.Shared.Actions;
+using Content.Shared.Actions.ActionTypes;
+using Content.Shared.Maps;
 using Robust.Client.Placement;
 using Robust.Shared.Map;
-using Content.Shared.Actions.ActionTypes;
-using Content.Shared.Actions;
-using Content.Client.Actions;
-using Content.Shared.Maps;
+using Robust.Shared.Utility;
 
 namespace Content.Client.Mapping;
 
@@ -17,12 +17,12 @@ public sealed partial class MappingSystem : EntitySystem
     /// <summary>
     ///     The icon to use for space tiles.
     /// </summary>
-    private readonly SpriteSpecifier _spaceIcon = new SpriteSpecifier.Texture(new ResourcePath("Tiles/cropped_parallax.png"));
+    private readonly SpriteSpecifier _spaceIcon = new SpriteSpecifier.Texture(new ("Tiles/cropped_parallax.png"));
 
     /// <summary>
     ///     The icon to use for entity-eraser.
     /// </summary>
-    private readonly SpriteSpecifier _deleteIcon = new SpriteSpecifier.Texture(new ResourcePath("Interface/VerbIcons/delete.svg.192dpi.png"));
+    private readonly SpriteSpecifier _deleteIcon = new SpriteSpecifier.Texture(new ("Interface/VerbIcons/delete.svg.192dpi.png"));
 
     public string DefaultMappingActions = "/mapping_actions.yml";
 
@@ -80,13 +80,13 @@ public sealed partial class MappingSystem : EntitySystem
 
             var tileIcon = contentTileDef.IsSpace
                 ? _spaceIcon
-                : new SpriteSpecifier.Texture(new ResourcePath(tileDef.Path) / $"{tileDef.SpriteName}.png");
+                : new SpriteSpecifier.Texture(contentTileDef.Sprite!.Value);
 
             ev.Action = new InstantAction()
             {
                 CheckCanInteract = false,
                 Event = actionEvent,
-                Name = tileDef.Name,
+                DisplayName = Loc.GetString(tileDef.Name),
                 Icon = tileIcon
             };
 
@@ -99,7 +99,7 @@ public sealed partial class MappingSystem : EntitySystem
             {
                 CheckCanInteract = false,
                 Event = actionEvent,
-                Name = "action-name-mapping-erase",
+                DisplayName = "action-name-mapping-erase",
                 Icon = _deleteIcon,
             };
 
@@ -113,7 +113,7 @@ public sealed partial class MappingSystem : EntitySystem
         {
             CheckCanInteract = false,
             Event = actionEvent,
-            Name = actionEvent.EntityType,
+            DisplayName = actionEvent.EntityType,
             Icon = new SpriteSpecifier.EntityPrototype(actionEvent.EntityType),
         };
     }

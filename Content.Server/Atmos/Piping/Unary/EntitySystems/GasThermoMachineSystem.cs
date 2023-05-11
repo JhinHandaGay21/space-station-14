@@ -5,10 +5,11 @@ using Content.Server.Construction;
 using Content.Server.NodeContainer;
 using Content.Server.NodeContainer.Nodes;
 using Content.Shared.Atmos;
-using Content.Shared.Atmos.Piping;
 using Content.Shared.Atmos.Piping.Unary.Components;
 using JetBrains.Annotations;
 using Robust.Server.GameObjects;
+using Content.Server.Power.EntitySystems;
+using Content.Shared.Examine;
 
 namespace Content.Server.Atmos.Piping.Unary.EntitySystems
 {
@@ -17,14 +18,17 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
     {
         [Dependency] private readonly AtmosphereSystem _atmosphereSystem = default!;
         [Dependency] private readonly UserInterfaceSystem _userInterfaceSystem = default!;
+        [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
+        [Dependency] private readonly PowerReceiverSystem _power = default!;
 
         public override void Initialize()
         {
             base.Initialize();
 
             SubscribeLocalEvent<GasThermoMachineComponent, AtmosDeviceUpdateEvent>(OnThermoMachineUpdated);
-            SubscribeLocalEvent<GasThermoMachineComponent, AtmosDeviceDisabledEvent>(OnThermoMachineLeaveAtmosphere);
             SubscribeLocalEvent<GasThermoMachineComponent, RefreshPartsEvent>(OnGasThermoRefreshParts);
+            SubscribeLocalEvent<GasThermoMachineComponent, UpgradeExamineEvent>(OnGasThermoUpgradeExamine);
+            SubscribeLocalEvent<GasThermoMachineComponent, ExaminedEvent>(OnExamined);
 
             // UI events
             SubscribeLocalEvent<GasThermoMachineComponent, GasThermomachineToggleMessage>(OnToggleMessage);
@@ -33,14 +37,11 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
 
         private void OnThermoMachineUpdated(EntityUid uid, GasThermoMachineComponent thermoMachine, AtmosDeviceUpdateEvent args)
         {
-            var appearance = EntityManager.GetComponentOrNull<AppearanceComponent>(thermoMachine.Owner);
 
-            if (!thermoMachine.Enabled
-                || !EntityManager.TryGetComponent(uid, out NodeContainerComponent? nodeContainer)
+            if (!(thermoMachine.Enabled && _power.IsPowered(uid))
+                || !TryComp(uid, out NodeContainerComponent? nodeContainer)
                 || !nodeContainer.TryGetNode(thermoMachine.InletName, out PipeNode? inlet))
             {
-                DirtyUI(uid, thermoMachine);
-                appearance?.SetData(ThermoMachineVisuals.Enabled, false);
                 return;
             }
 
@@ -49,91 +50,90 @@ namespace Content.Server.Atmos.Piping.Unary.EntitySystems
 
             if (!MathHelper.CloseTo(combinedHeatCapacity, 0, 0.001f))
             {
-                appearance?.SetData(ThermoMachineVisuals.Enabled, true);
                 var combinedEnergy = thermoMachine.HeatCapacity * thermoMachine.TargetTemperature + airHeatCapacity * inlet.Air.Temperature;
                 inlet.Air.Temperature = combinedEnergy / combinedHeatCapacity;
             }
-
-            // TODO ATMOS: Active power usage.
         }
 
-        private void OnThermoMachineLeaveAtmosphere(EntityUid uid, GasThermoMachineComponent component, AtmosDeviceDisabledEvent args)
+        private void OnGasThermoRefreshParts(EntityUid uid, GasThermoMachineComponent thermoMachine, RefreshPartsEvent args)
         {
-            if (EntityManager.TryGetComponent(uid, out AppearanceComponent? appearance))
-            {
-                appearance.SetData(ThermoMachineVisuals.Enabled, false);
-            }
+            var heatCapacityPartRating = args.PartRatings[thermoMachine.MachinePartHeatCapacity];
+            var temperatureRangePartRating = args.PartRatings[thermoMachine.MachinePartTemperature];
 
-            DirtyUI(uid, component);
-        }
+            thermoMachine.HeatCapacity = thermoMachine.BaseHeatCapacity * MathF.Pow(heatCapacityPartRating, 2);
 
-        private void OnGasThermoRefreshParts(EntityUid uid, GasThermoMachineComponent component, RefreshPartsEvent args)
-        {
-            // Here we evaluate the average quality of relevant machine parts. 
-            var nLasers = 0;
-            var nBins= 0;
-            var matterBinRating = 0;
-            var laserRating = 0;
-
-            foreach (var part in args.Parts)
-            {
-                switch (part.PartType)
-                {
-                    case MachinePart.MatterBin:
-                        nBins += 1;
-                        matterBinRating += part.Rating;
-                        break;
-                    case MachinePart.Laser:
-                        nLasers += 1;
-                        laserRating += part.Rating;
-                        break;
-                }
-            }
-            laserRating /= nLasers;
-            matterBinRating /= nBins;
-
-            component.HeatCapacity = 5000 * MathF.Pow(matterBinRating, 2);
-
-            switch (component.Mode)
+            switch (thermoMachine.Mode)
             {
                 // 593.15K with stock parts.
                 case ThermoMachineMode.Heater:
-                    component.MaxTemperature = component.BaseMaxTemperature + component.MaxTemperatureDelta * laserRating;
-                    component.MinTemperature = Atmospherics.T20C;
+                    thermoMachine.MaxTemperature = thermoMachine.BaseMaxTemperature + thermoMachine.MaxTemperatureDelta * temperatureRangePartRating;
+                    thermoMachine.MinTemperature = Atmospherics.T20C;
                     break;
                 // 73.15K with stock parts.
                 case ThermoMachineMode.Freezer:
-                    component.MinTemperature = MathF.Max(
-                        component.BaseMinTemperature - component.MinTemperatureDelta * laserRating, Atmospherics.TCMB);
-                    component.MaxTemperature = Atmospherics.T20C;
+                    thermoMachine.MinTemperature = MathF.Max(
+                        thermoMachine.BaseMinTemperature - thermoMachine.MinTemperatureDelta * temperatureRangePartRating, Atmospherics.TCMB);
+                    thermoMachine.MaxTemperature = Atmospherics.T20C;
                     break;
             }
 
-            DirtyUI(uid, component);
+            DirtyUI(uid, thermoMachine);
         }
 
-        private void OnToggleMessage(EntityUid uid, GasThermoMachineComponent component, GasThermomachineToggleMessage args)
+        private void OnGasThermoUpgradeExamine(EntityUid uid, GasThermoMachineComponent thermoMachine, UpgradeExamineEvent args)
         {
-            component.Enabled = !component.Enabled;
-
-            DirtyUI(uid, component);
+            switch (thermoMachine.Mode)
+            {
+                case ThermoMachineMode.Heater:
+                    args.AddPercentageUpgrade("gas-thermo-component-upgrade-heating", thermoMachine.MaxTemperature / (thermoMachine.BaseMaxTemperature + thermoMachine.MaxTemperatureDelta));
+                    break;
+                case ThermoMachineMode.Freezer:
+                    args.AddPercentageUpgrade("gas-thermo-component-upgrade-cooling", thermoMachine.MinTemperature / (thermoMachine.BaseMinTemperature - thermoMachine.MinTemperatureDelta));
+                    break;
+            }
+            args.AddPercentageUpgrade("gas-thermo-component-upgrade-heat-capacity", thermoMachine.HeatCapacity / thermoMachine.BaseHeatCapacity);
         }
 
-        private void OnChangeTemperature(EntityUid uid, GasThermoMachineComponent component, GasThermomachineChangeTemperatureMessage args)
+        private void OnToggleMessage(EntityUid uid, GasThermoMachineComponent thermoMachine, GasThermomachineToggleMessage args)
         {
-            component.TargetTemperature =
-                Math.Clamp(args.Temperature, component.MinTemperature, component.MaxTemperature);
-
-            DirtyUI(uid, component);
+            SetEnabled(uid, thermoMachine, _power.TogglePower(uid));
+            DirtyUI(uid, thermoMachine);
         }
 
-        private void DirtyUI(EntityUid uid, GasThermoMachineComponent? thermo, ServerUserInterfaceComponent? ui=null)
+        private void OnChangeTemperature(EntityUid uid, GasThermoMachineComponent thermoMachine, GasThermomachineChangeTemperatureMessage args)
         {
-            if (!Resolve(uid, ref thermo, ref ui, false))
+            thermoMachine.TargetTemperature =
+                Math.Clamp(args.Temperature, thermoMachine.MinTemperature, thermoMachine.MaxTemperature);
+
+            DirtyUI(uid, thermoMachine);
+        }
+
+        private void DirtyUI(EntityUid uid, GasThermoMachineComponent? thermoMachine, ServerUserInterfaceComponent? ui=null)
+        {
+            if (!Resolve(uid, ref thermoMachine, ref ui, false))
                 return;
 
             _userInterfaceSystem.TrySetUiState(uid, ThermomachineUiKey.Key,
-                new GasThermomachineBoundUserInterfaceState(thermo.MinTemperature, thermo.MaxTemperature, thermo.TargetTemperature, thermo.Enabled, thermo.Mode), null, ui);
+                new GasThermomachineBoundUserInterfaceState(thermoMachine.MinTemperature, thermoMachine.MaxTemperature, thermoMachine.TargetTemperature, thermoMachine.Enabled, thermoMachine.Mode), null, ui);
+        }
+
+        private void SetEnabled(EntityUid uid, GasThermoMachineComponent thermoMachine, bool enabled)
+        {
+            thermoMachine.Enabled = enabled;
+        }
+
+        private void OnExamined(EntityUid uid, GasThermoMachineComponent thermoMachine, ExaminedEvent args)
+        {
+            if (!args.IsInDetailsRange)
+                return;
+
+            if (Loc.TryGetString("gas-thermomachine-system-examined", out var str,
+                        ("machineName", thermoMachine.Mode == ThermoMachineMode.Freezer ? "freezer" : "heater"),
+                        ("tempColor", thermoMachine.Mode == ThermoMachineMode.Freezer ? "deepskyblue" : "red"),
+                        ("temp", Math.Round(thermoMachine.TargetTemperature,2))
+               ))
+
+                args.PushMarkup(str);
         }
     }
 }

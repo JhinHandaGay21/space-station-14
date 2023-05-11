@@ -15,6 +15,7 @@
     damageContainer: Inorganic
     damageModifierSet: Metallic
   - type: SubFloorHide
+  - type: CollideOnAnchor
   - type: PipeAppearance
   - type: Anchorable
   - type: Rotatable
@@ -41,13 +42,15 @@
     - Pipe
   - type: Physics
     canCollide: false
+    bodyType: static
   - type: AmbientSound
     enabled: false
     volume: -15
     range: 2
     sound:
       path: /Audio/Ambience/Objects/gas_hiss.ogg
-  - type: GasAnalyzable
+  - type: StaticPrice
+    price: 100
 
 #Note: The PipeDirection of the PipeNode should be the south-facing version, because the entity starts at an angle of 0 (south)
 

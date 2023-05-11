@@ -2,7 +2,7 @@
 - type: entity
   abstract: true
   id: BaseSubstation
-  parent: BaseMachine
+  parent: [ BaseMachine, ConstructibleMachine ]
   name: substation
   description: Reduces the voltage of electricity put into it.
   placement:
@@ -10,14 +10,17 @@
   components:
   - type: Sprite # TODO: add sprite for maintenance panel open
     sprite: Structures/Power/substation.rsi
+    snapCardinals: true
     layers:
     - state: substation
     - state: screen
       shader: unshaded
     - state: full
       shader: unshaded
+  - type: UpgradeBattery
+    maxChargeMultiplier: 2
+    baseMaxCharge: 2500000
   - type: Battery
-    maxCharge: 4000000
     startingCharge: 0
   - type: ExaminableBattery
   - type: PointLight
@@ -43,11 +46,17 @@
     maxChargeRate: 5000
     supplyRampTolerance: 5000
     supplyRampRate: 1000
-  - type: Construction
-    graph: Machine
-    node: machine
+  - type: Damageable
+    damageContainer: Inorganic
+    damageModifierSet: StrongMetallic
   - type: Destructible
     thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 200
+      behaviors:
+        - !type:DoActsBehavior
+          acts: [ "Destruction" ]
     - trigger:
         !type:DamageTrigger
         damage: 100
@@ -73,11 +82,13 @@
     LayoutId: Substation
   - type: Machine
     board: SubstationMachineCircuitboard
-  - type: ContainerContainer
-    containers:
-      machine_parts: !type:Container
-      machine_board: !type:Container
   - type: StationInfiniteBatteryTarget
+  - type: AmbientOnPowered
+  - type: AmbientSound
+    volume: -5
+    range: 3
+    sound:
+      path: /Audio/Ambience/Objects/buzzing.ogg
 
 # Compact Wall Substation Base
 - type: entity
@@ -90,10 +101,10 @@
   components:
   - type: AmbientOnPowered
   - type: AmbientSound
-    volume: -15
+    volume: -5
     range: 2
     sound:
-      path: /Audio/Ambience/Objects/hdd_buzz.ogg
+      path: /Audio/Ambience/Objects/buzzing.ogg
   - type: PointLight
     netsync: false
     radius: 1.5
@@ -106,6 +117,7 @@
   - type: InteractionOutline
   - type: Physics
     bodyType: Static
+    canCollide: false
   - type: Fixtures
   - type: Transform
     anchored: true
@@ -146,6 +158,12 @@
     thresholds:
     - trigger:
         !type:DamageTrigger
+        damage: 200
+      behaviors:
+        - !type:DoActsBehavior
+          acts: [ "Destruction" ]
+    - trigger:
+        !type:DamageTrigger
         damage: 100
       behaviors:
       - !type:DoActsBehavior
@@ -163,22 +181,31 @@
     intensitySlope: 2
     totalIntensity: 100
   - type: StationInfiniteBatteryTarget
+  - type: WallMount
 
 # Substations in use
 
 - type: entity
   parent: BaseSubstation
   id: SubstationBasic
-  suffix: Basic, 4MW
+  suffix: Basic, 2.5MJ
   components:
   - type: Battery
-    maxCharge: 4000000
-    startingCharge: 4000000
+    maxCharge: 2500000
+    startingCharge: 2500000
+
+- type: entity
+  parent: SubstationBasic
+  id: SubstationBasicEmpty
+  suffix: Empty
+  components:
+  - type: Battery
+    startingCharge: 0
 
 - type: entity
   parent: BaseSubstationWall
   id: SubstationWallBasic
-  suffix: Basic, 2MW
+  suffix: Basic, 2MJ
   components:
   - type: Battery
     maxCharge: 2000000
@@ -197,6 +224,7 @@
   - type: InteractionOutline
   - type: Physics
     bodyType: Static
+    canCollide: false
   - type: Fixtures
   - type: Transform
     anchored: true
@@ -209,3 +237,4 @@
   - type: Construction
     graph: WallmountSubstation
     node: frame
+  - type: WallMount

@@ -48,7 +48,7 @@ namespace Content.Shared.GameTicking
         public TimeSpan RoundStartTimeSpan { get; }
         public bool Paused { get; }
 
-        public TickerLobbyStatusEvent(bool isRoundStarted, string? lobbySong, string? lobbyBackground, bool youAreReady, TimeSpan startTime, TimeSpan roundStartTimeSpan, bool paused)
+        public TickerLobbyStatusEvent(bool isRoundStarted, string? lobbySong, string? lobbyBackground, bool youAreReady, TimeSpan startTime, TimeSpan preloadTime, TimeSpan roundStartTimeSpan, bool paused)
         {
             IsRoundStarted = isRoundStarted;
             LobbySong = lobbySong;
@@ -97,9 +97,9 @@ namespace Content.Shared.GameTicking
         /// <summary>
         /// The Status of the Player in the lobby (ready, observer, ...)
         /// </summary>
-        public Dictionary<NetUserId, LobbyPlayerStatus> Status { get; }
+        public Dictionary<NetUserId, PlayerGameStatus> Status { get; }
 
-        public TickerLobbyReadyEvent(Dictionary<NetUserId, LobbyPlayerStatus> status)
+        public TickerLobbyReadyEvent(Dictionary<NetUserId, PlayerGameStatus> status)
         {
             Status = status;
         }
@@ -168,11 +168,11 @@ namespace Content.Shared.GameTicking
 
 
     [Serializable, NetSerializable]
-    public enum LobbyPlayerStatus : sbyte
+    public enum PlayerGameStatus : sbyte
     {
-        NotReady = 0,
-        Ready,
-        Observer,
+        NotReadyToPlay = 0,
+        ReadyToPlay,
+        JoinedGame,
     }
 }
 

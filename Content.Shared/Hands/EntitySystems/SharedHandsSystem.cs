@@ -1,11 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Hands.Components;
 using Content.Shared.Interaction;
 using Robust.Shared.Containers;
 using Robust.Shared.Input.Binding;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace Content.Shared.Hands.EntitySystems;
 
@@ -16,11 +16,15 @@ public abstract partial class SharedHandsSystem : EntitySystem
     [Dependency] private readonly ActionBlockerSystem _actionBlocker = default!;
     [Dependency] private readonly SharedContainerSystem _containerSystem = default!;
 
+    protected event Action<HandsComponent?>? OnHandSetActive;
+
     public override void Initialize()
     {
         base.Initialize();
 
         InitializeInteractions();
+        InitializeDrop();
+        InitializePickup();
     }
 
     public override void Shutdown()
@@ -29,7 +33,7 @@ public abstract partial class SharedHandsSystem : EntitySystem
         CommandBinds.Unregister<SharedHandsSystem>();
     }
 
-    public void AddHand(EntityUid uid, string handName, HandLocation handLocation, SharedHandsComponent? handsComp = null)
+    public virtual void AddHand(EntityUid uid, string handName, HandLocation handLocation, HandsComponent? handsComp = null)
     {
         if (!Resolve(uid, ref handsComp, false))
             return;
@@ -51,7 +55,7 @@ public abstract partial class SharedHandsSystem : EntitySystem
         Dirty(handsComp);
     }
 
-    public void RemoveHand(EntityUid uid, string handName, SharedHandsComponent? handsComp = null)
+    public virtual void RemoveHand(EntityUid uid, string handName, HandsComponent? handsComp = null)
     {
         if (!Resolve(uid, ref handsComp, false))
             return;
@@ -81,7 +85,7 @@ public abstract partial class SharedHandsSystem : EntitySystem
     /// <summary>
     ///     Get any empty hand. Prioritizes the currently active hand.
     /// </summary>
-    public bool TryGetEmptyHand(EntityUid uid, [NotNullWhen(true)] out Hand? emptyHand, SharedHandsComponent? handComp = null)
+    public bool TryGetEmptyHand(EntityUid uid, [NotNullWhen(true)] out Hand? emptyHand, HandsComponent? handComp = null)
     {
         emptyHand = null;
         if (!Resolve(uid, ref handComp, false))
@@ -102,7 +106,7 @@ public abstract partial class SharedHandsSystem : EntitySystem
     /// <summary>
     ///     Enumerate over hands, starting with the currently active hand.
     /// </summary>
-    public IEnumerable<Hand> EnumerateHands(EntityUid uid, SharedHandsComponent? handsComp = null)
+    public IEnumerable<Hand> EnumerateHands(EntityUid uid, HandsComponent? handsComp = null)
     {
         if (!Resolve(uid, ref handsComp, false))
             yield break;
@@ -120,7 +124,7 @@ public abstract partial class SharedHandsSystem : EntitySystem
     /// <summary>
     ///     Enumerate over held items, starting with the item in the currently active hand (if there is one).
     /// </summary>
-    public IEnumerable<EntityUid> EnumerateHeld(EntityUid uid, SharedHandsComponent? handsComp = null)
+    public IEnumerable<EntityUid> EnumerateHeld(EntityUid uid, HandsComponent? handsComp = null)
     {
         if (!Resolve(uid, ref handsComp, false))
             yield break;
@@ -143,7 +147,7 @@ public abstract partial class SharedHandsSystem : EntitySystem
     /// </summary>
     /// <returns>True if the active hand was set to a NEW value. Setting it to the same value returns false and does
     /// not trigger interactions.</returns>
-    public virtual bool TrySetActiveHand(EntityUid uid, string? name, SharedHandsComponent? handComp = null)
+    public virtual bool TrySetActiveHand(EntityUid uid, string? name, HandsComponent? handComp = null)
     {
         if (!Resolve(uid, ref handComp))
             return false;
@@ -154,7 +158,6 @@ public abstract partial class SharedHandsSystem : EntitySystem
         Hand? hand = null;
         if (name != null && !handComp.Hands.TryGetValue(name, out hand))
             return false;
-
         return SetActiveHand(uid, hand, handComp);
     }
 
@@ -163,7 +166,7 @@ public abstract partial class SharedHandsSystem : EntitySystem
     /// </summary>
     /// <returns>True if the active hand was set to a NEW value. Setting it to the same value returns false and does
     /// not trigger interactions.</returns>
-    public virtual bool SetActiveHand(EntityUid uid, Hand? hand, SharedHandsComponent? handComp = null)
+    public bool SetActiveHand(EntityUid uid, Hand? hand, HandsComponent? handComp = null)
     {
         if (!Resolve(uid, ref handComp))
             return false;
@@ -181,15 +184,15 @@ public abstract partial class SharedHandsSystem : EntitySystem
         }
 
         handComp.ActiveHand = hand;
+        OnHandSetActive?.Invoke(handComp);
 
         if (hand.HeldEntity != null)
             RaiseLocalEvent(hand.HeldEntity.Value, new HandSelectedEvent(uid), false);
-
         Dirty(handComp);
         return true;
     }
 
-    public bool IsHolding(EntityUid uid, EntityUid? entity, [NotNullWhen(true)] out Hand? inHand, SharedHandsComponent? handsComp = null)
+    public bool IsHolding(EntityUid uid, EntityUid? entity, [NotNullWhen(true)] out Hand? inHand, HandsComponent? handsComp = null)
     {
         inHand = null;
         if (!Resolve(uid, ref handsComp, false))
@@ -205,5 +208,16 @@ public abstract partial class SharedHandsSystem : EntitySystem
         }
 
         return false;
+    }
+
+    public bool TryGetHand(EntityUid handsUid, string handId, [NotNullWhen(true)] out Hand? hand,
+        HandsComponent? hands = null)
+    {
+        hand = null;
+
+        if (!Resolve(handsUid, ref hands))
+            return false;
+
+        return hands.Hands.TryGetValue(handId, out hand);
     }
 }

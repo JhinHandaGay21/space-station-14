@@ -1,7 +1,9 @@
 using System.Linq;
 using Content.Server.Construction.Components;
 using Content.Shared.Construction;
+using Content.Shared.Construction.Components;
 using JetBrains.Annotations;
+using Robust.Server.Containers;
 using Robust.Shared.Containers;
 
 namespace Content.Server.Construction.Completions
@@ -10,6 +12,7 @@ namespace Content.Server.Construction.Completions
     [DataDefinition]
     public sealed class BuildMachine : IGraphAction
     {
+        // TODO use or generalize ConstructionSystem.ChangeEntity();
         public void PerformAction(EntityUid uid, EntityUid? userUid, IEntityManager entityManager)
         {
             if (!entityManager.TryGetComponent(uid, out ContainerManagerComponent? containerManager))
@@ -24,7 +27,7 @@ namespace Content.Server.Construction.Completions
                 return;
             }
 
-            if (!EntitySystem.Get<MachineFrameSystem>().IsComplete(machineFrame))
+            if (!entityManager.EntitySysManager.GetEntitySystem<MachineFrameSystem>().IsComplete(machineFrame))
             {
                 Logger.Warning($"Machine frame entity {uid} doesn't have all required parts to be built! Aborting build machine action.");
                 return;
@@ -57,24 +60,25 @@ namespace Content.Server.Construction.Completions
 
             entBoardContainer.Remove(board);
 
+            var containerSys = entityManager.EntitySysManager.GetEntitySystem<ContainerSystem>();
             var transform = entityManager.GetComponent<TransformComponent>(uid);
             var machine = entityManager.SpawnEntity(boardComponent.Prototype, transform.Coordinates);
             entityManager.GetComponent<TransformComponent>(machine).LocalRotation = transform.LocalRotation;
 
-            var boardContainer = machine.EnsureContainer<Container>(MachineFrameComponent.BoardContainerName, out var existed);
+            var boardContainer = containerSys.EnsureContainer<Container>(machine, MachineFrameComponent.BoardContainerName, out var existed);
 
             if (existed)
             {
                 // Clean that up...
-                boardContainer.CleanContainer();
+                containerSys.CleanContainer(boardContainer);
             }
 
-            var partContainer = machine.EnsureContainer<Container>(MachineFrameComponent.PartContainerName, out existed);
+            var partContainer = containerSys.EnsureContainer<Container>(machine, MachineFrameComponent.PartContainerName, out existed);
 
             if (existed)
             {
                 // Clean that up, too...
-                partContainer.CleanContainer();
+                containerSys.CleanContainer(partContainer);
             }
 
             boardContainer.Insert(board);
@@ -96,10 +100,13 @@ namespace Content.Server.Construction.Completions
 
             if (entityManager.TryGetComponent(machine, out MachineComponent? machineComp))
             {
-                constructionSystem.RefreshParts(machineComp);
+                constructionSystem.RefreshParts(machine, machineComp);
             }
 
-            entityManager.DeleteEntity(uid);
+            var entChangeEv = new ConstructionChangeEntityEvent(machine, uid);
+            entityManager.EventBus.RaiseLocalEvent(uid, entChangeEv);
+            entityManager.EventBus.RaiseLocalEvent(machine, entChangeEv, broadcast: true);
+            entityManager.QueueDeleteEntity(uid);
         }
     }
 }

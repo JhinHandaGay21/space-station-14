@@ -7,6 +7,13 @@
   - type: IngestionBlocker
   - type: FlashImmunity
   - type: IdentityBlocker
+  - type: EyeProtection
+  - type: PhysicalComposition
+    materialComposition:
+      Steel: 500
+      Glass: 100
+  - type: StaticPrice
+    price: 50
 
 - type: entity
   parent: WeldingMaskBase

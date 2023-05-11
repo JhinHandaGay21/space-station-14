@@ -1,3 +1,8 @@
-rcd-ammo-component-on-examine-text = It holds { $ammo } charges.
-rcd-ammo-component-after-interact-full-text = The RCD is full!
-rcd-ammo-component-after-interact-refilled-text = You refill the RCD.
+rcd-ammo-component-on-examine =
+    Содержит { $charges } { $charges ->
+        [one] заряд
+        [few] заряда
+       *[other] зарядов 
+    }.
+rcd-ammo-component-after-interact-full = РСУ полон!
+rcd-ammo-component-after-interact-refilled = Вы пополняете РСУ.

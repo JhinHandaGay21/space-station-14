@@ -1,9 +1,8 @@
-ent-ClothingWithSuitSensor = { ent-Clothing }
+ent-UnsensoredClothingUniformBase = { ent-Clothing }
     .desc = { ent-Clothing.desc }
-    .suffix = { "" }
-ent-ClothingUniformBase = { ent-ClothingWithSuitSensor }
-    .desc = { ent-ClothingWithSuitSensor.desc }
-    .suffix = { "" }
-ent-ClothingUniformSkirtBase = { ent-ClothingWithSuitSensor }
-    .desc = { ent-ClothingWithSuitSensor.desc }
-    .suffix = { "" }
+ent-UnsensoredClothingUniformSkirtBase = { ent-UnsensoredClothingUniformBase }
+    .desc = { ent-UnsensoredClothingUniformBase.desc }
+ent-ClothingUniformBase = { ent-UnsensoredClothingUniformBase }
+    .desc = { ent-UnsensoredClothingUniformBase.desc }
+ent-ClothingUniformSkirtBase = { ent-ClothingUniformBase }
+    .desc = { ent-ClothingUniformBase.desc }

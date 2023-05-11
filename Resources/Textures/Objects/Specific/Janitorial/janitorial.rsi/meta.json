@@ -11,10 +11,19 @@
       "name": "cleaner"
     },
     {
+      "name": "cleaner_large"
+    },
+    {
       "name": "mopbucket"
     },
     {
-      "name": "mopbucket_water"
+      "name": "mopbucket_water-1"
+    },
+    {
+      "name": "mopbucket_water-2"
+    },
+    {
+      "name": "mopbucket_water-3"
     },
     {
       "name": "inhand-left",

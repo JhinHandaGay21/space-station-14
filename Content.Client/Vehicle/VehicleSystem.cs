@@ -1,62 +1,70 @@
-using Content.Client.Buckle.Strap;
 using Content.Shared.Vehicle;
 using Content.Shared.Vehicle.Components;
 using Robust.Client.GameObjects;
-using Robust.Client.Graphics;
-using Robust.Client.Player;
 using Robust.Shared.GameStates;
 
-namespace Content.Client.Vehicle
+namespace Content.Client.Vehicle;
+
+public sealed class VehicleSystem : SharedVehicleSystem
 {
-    public sealed class VehicleSystem : SharedVehicleSystem
+    public override void Initialize()
     {
-        [Dependency] private readonly IEyeManager _eyeManager = default!;
-        [Dependency] private readonly IPlayerManager _playerManager = default!;
+        base.Initialize();
 
-        public override void Initialize()
-        {
-            base.Initialize();
-            SubscribeLocalEvent<RiderComponent, ComponentShutdown>(OnRiderShutdown);
-            SubscribeLocalEvent<RiderComponent, ComponentHandleState>(OnRiderHandleState);
-            SubscribeLocalEvent<RiderComponent, PlayerAttachedEvent>(OnRiderAttached);
-            SubscribeLocalEvent<RiderComponent, PlayerDetachedEvent>(OnRiderDetached);
-        }
-
-        private void OnRiderShutdown(EntityUid uid, RiderComponent component, ComponentShutdown args)
-        {
-            component.Vehicle = null;
-            UpdateEye(component);
-        }
-
-        private void OnRiderAttached(EntityUid uid, RiderComponent component, PlayerAttachedEvent args)
-        {
-            UpdateEye(component);
-        }
-
-        private void OnRiderDetached(EntityUid uid, RiderComponent component, PlayerDetachedEvent args)
-        {
-            UpdateEye(component);
-        }
-
-        private void UpdateEye(RiderComponent component)
-        {
-            if (!TryComp(component.Vehicle, out EyeComponent? eyeComponent))
-            {
-                TryComp(_playerManager.LocalPlayer?.ControlledEntity, out eyeComponent);
-            }
-
-            if (eyeComponent?.Eye == null) return;
-
-            _eyeManager.CurrentEye = eyeComponent.Eye;
-        }
-
-        private void OnRiderHandleState(EntityUid uid, RiderComponent component, ref ComponentHandleState args)
-        {
-            // Server should only be sending states for our entity.
-            if (args.Current is not RiderComponentState state) return;
-            component.Vehicle = state.Entity;
-
-            UpdateEye(component);
-        }
+        SubscribeLocalEvent<RiderComponent, ComponentStartup>(OnRiderStartup);
+        SubscribeLocalEvent<RiderComponent, ComponentShutdown>(OnRiderShutdown);
+        SubscribeLocalEvent<RiderComponent, ComponentHandleState>(OnRiderHandleState);
+        SubscribeLocalEvent<VehicleComponent, AppearanceChangeEvent>(OnVehicleAppearanceChange);
     }
+
+    private void OnRiderStartup(EntityUid uid, RiderComponent component, ComponentStartup args)
+    {
+        // Center the player's eye on the vehicle
+        if (TryComp(uid, out EyeComponent? eyeComp))
+            eyeComp.Target ??= component.Vehicle;
+    }
+
+    private void OnRiderShutdown(EntityUid uid, RiderComponent component, ComponentShutdown args)
+    {
+        // reset the riders eye centering.
+        if (TryComp(uid, out EyeComponent? eyeComp) && eyeComp.Target == component.Vehicle)
+            eyeComp.Target = null;
+    }
+
+    private void OnRiderHandleState(EntityUid uid, RiderComponent component, ref ComponentHandleState args)
+    {
+        if (args.Current is not RiderComponentState state)
+            return;
+
+        if (TryComp(uid, out EyeComponent? eyeComp) && eyeComp.Target == component.Vehicle)
+            eyeComp.Target = state.Entity;
+
+        component.Vehicle = state.Entity;
+    }
+
+    private void OnVehicleAppearanceChange(EntityUid uid, VehicleComponent component, ref AppearanceChangeEvent args)
+    {
+        if (args.Sprite == null)
+            return;
+
+        if (component.HideRider
+            && Appearance.TryGetData<bool>(uid, VehicleVisuals.HideRider, out var hide, args.Component)
+            && TryComp<SpriteComponent>(component.LastRider, out var riderSprite))
+            riderSprite.Visible = !hide;
+
+        // First check is for the sprite itself
+        if (Appearance.TryGetData<int>(uid, VehicleVisuals.DrawDepth, out var drawDepth, args.Component))
+            args.Sprite.DrawDepth = drawDepth;
+
+        // Set vehicle layer to animated or not (i.e. are the wheels turning or not)
+        if (component.AutoAnimate
+            && Appearance.TryGetData<bool>(uid, VehicleVisuals.AutoAnimate, out var autoAnimate, args.Component))
+            args.Sprite.LayerSetAutoAnimated(VehicleVisualLayers.AutoAnimate, autoAnimate);
+    }
+}
+
+public enum VehicleVisualLayers : byte
+{
+    /// Layer for the vehicle's wheels
+    AutoAnimate,
 }

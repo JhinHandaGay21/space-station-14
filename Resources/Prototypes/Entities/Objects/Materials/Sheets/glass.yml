@@ -49,10 +49,9 @@
   suffix: Full
   components:
   - type: Material
-    materials:
+  - type: PhysicalComposition
+    materialComposition:
       Glass: 100
-  - type: StackPrice
-    price: 5
   - type: Stack
     stackType: Glass
   - type: Sprite
@@ -68,7 +67,7 @@
       - glass_3
   - type: FloorTile
     outputs:
-    - floor_glass
+    - FloorGlass
   - type: Construction
     graph: Glass
     node: SheetGlass
@@ -89,10 +88,12 @@
   parent: SheetGlassBase
   id: SheetRGlass
   name: reinforced glass
+  description: A reinforced sheet of glass.
   suffix: Full
   components:
   - type: Material
-    materials:
+  - type: PhysicalComposition
+    materialComposition:
       ReinforcedGlass: 100
   - type: Stack
     stackType: ReinforcedGlass
@@ -109,7 +110,7 @@
       - rglass_3
   - type: FloorTile
     outputs:
-    - floor_rglass
+    - FloorRGlass
   - type: Construction
     graph: Glass
     node: SheetRGlass
@@ -130,10 +131,12 @@
   parent: SheetGlassBase
   id: SheetPGlass
   name: plasma glass
+  description: A sheet of translucent plasma.
   suffix: Full
   components:
   - type: Material
-    materials:
+  - type: PhysicalComposition
+    materialComposition:
       PlasmaGlass: 100
   - type: Stack
     stackType: PlasmaGlass
@@ -168,11 +171,13 @@
   parent: SheetGlassBase
   id: SheetRPGlass
   name: reinforced plasma glass
+  description: A reinforced sheet of translucent plasma.
   suffix: Full
   components:
   - type: Material
-    materials:
-      ReinforcedPlasmaGlass: 500
+  - type: PhysicalComposition
+    materialComposition:
+      ReinforcedPlasmaGlass: 100
   - type: Stack
     stackType: ReinforcedPlasmaGlass
   - type: Sprite
@@ -200,4 +205,84 @@
     state: rpglass
   - type: Stack
     stackType: ReinforcedPlasmaGlass
+    count: 1
+
+- type: entity
+  parent: SheetGlassBase
+  id: SheetUGlass
+  name: uranium glass
+  description: A sheet of uranium glass.
+  suffix: Full
+  components:
+  - type: Material
+  - type: PhysicalComposition
+    materialComposition:
+      UraniumGlass: 100
+  - type: Stack
+    stackType: UraniumGlass
+  - type: Sprite
+    state: uglass_3
+  - type: Item
+    heldPrefix: uglass
+  - type: Appearance
+    visuals:
+    - type: StackVisualizer
+      stackLayers:
+      - uglass
+      - uglass_2
+      - uglass_3
+  - type: Construction
+    graph: Glass
+    node: SheetUGlass
+
+- type: entity
+  parent: SheetUGlass
+  id: SheetUGlass1
+  name: uranium glass
+  suffix: Single
+  components:
+  - type: Sprite
+    state: uglass
+  - type: Stack
+    stackType: UraniumGlass
+    count: 1
+
+- type: entity
+  parent: SheetGlassBase
+  id: SheetRUGlass
+  name: reinforced uranium glass
+  description: A reinforced sheet of uranium.
+  suffix: Full
+  components:
+  - type: Material
+  - type: PhysicalComposition
+    materialComposition:
+      ReinforcedUraniumGlass: 100
+  - type: Stack
+    stackType: ReinforcedUraniumGlass
+  - type: Sprite
+    state: ruglass_3
+  - type: Item
+    heldPrefix: ruglass
+  - type: Appearance
+    visuals:
+    - type: StackVisualizer
+      stackLayers:
+      - ruglass
+      - ruglass_2
+      - ruglass_3
+  - type: Construction
+    graph: Glass
+    node: SheetRUGlass
+
+- type: entity
+  parent: SheetRUGlass
+  id: SheetRUGlass1
+  name: reinforced uranium glass
+  suffix: Single
+  components:
+  - type: Sprite
+    state: ruglass
+  - type: Stack
+    stackType: ReinforcedUraniumGlass
     count: 1

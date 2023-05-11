@@ -1,4 +1,4 @@
-﻿- type: entity
+- type: entity
   id: SmallboxItem
   parent: BaseStorageItem
   abstract: true
@@ -6,7 +6,7 @@
   - type: Storage
     capacity: 10
   - type: Item
-    size: 6
+    size: 10
 
 - type: entity
   name: match stick
@@ -18,7 +18,6 @@
     tags:
     - Matchstick
     - Trash
-  - type: Recyclable
   - type: SpaceGarbage
   - type: Sprite
     netsync: false
@@ -38,11 +37,21 @@
     radius: 1.1
     color: darkorange
   - type: Appearance
-    visuals:
-      - type: BurnStateVisualizer
-        unlitIcon: match_unlit
-        litIcon: match_lit
-        burntIcon: match_burnt
+  - type: BurnStateVisuals
+    unlitIcon: match_unlit
+    litIcon: match_lit
+    burntIcon: match_burnt
+
+- type: entity
+  parent: Matchstick
+  id: MatchstickSpent
+  suffix: spent
+  components:
+  - type: Sprite
+    layers:
+      - state: match_burnt
+  - type: Matchstick
+    state: Burnt
 
 - type: entity
   name: match box
@@ -62,13 +71,16 @@
   - type: Item
     sprite: Objects/Tools/matches.rsi
     heldPrefix: matchbox
+    size: 5
+  - type: Storage
+    capacity: 5
   - type: StorageFill
     contents:
       - id: Matchstick
-        amount: 6
+        amount: 5
   - type: ItemCounter
     count:
-      tags: [Cigar]
+      tags: [Matchstick]
   - type: Appearance
     visuals:
       - type: BagOpenCloseVisualizer
@@ -82,5 +94,4 @@
   - type: Tag
     tags:
     - Trash
-  - type: Recyclable
   - type: SpaceGarbage

@@ -1,7 +1,6 @@
-﻿using JetBrains.Annotations;
+﻿using Content.Shared.MedicalScanner;
+using JetBrains.Annotations;
 using Robust.Client.GameObjects;
-
-using static Content.Shared.MedicalScanner.SharedHealthAnalyzerComponent;
 
 namespace Content.Client.HealthAnalyzer.UI
 {
@@ -10,7 +9,7 @@ namespace Content.Client.HealthAnalyzer.UI
     {
         private HealthAnalyzerWindow? _window;
 
-        public HealthAnalyzerBoundUserInterface(ClientUserInterfaceComponent owner, object uiKey) : base(owner, uiKey)
+        public HealthAnalyzerBoundUserInterface(ClientUserInterfaceComponent owner, Enum uiKey) : base(owner, uiKey)
         {
         }
 

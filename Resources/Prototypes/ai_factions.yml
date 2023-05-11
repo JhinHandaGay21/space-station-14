@@ -1,28 +1,56 @@
-- type: aiFaction
+- type: faction
+  id: Dragon
+  hostile:
+    - NanoTrasen
+    - Syndicate
+    - Xeno
+    - PetsNT
+
+- type: faction
   id: NanoTrasen
   hostile:
   - SimpleHostile
   - Syndicate
   - Xeno
 
-- type: aiFaction
+- type: faction
+  id: Mouse
+  hostile:
+    - PetsNT
+
+- type: faction
+  id: Passive
+
+- type: faction
+  id: PetsNT
+  hostile:
+  - Mouse
+  - SimpleHostile
+  - Xeno
+
+- type: faction
   id: SimpleHostile
   hostile:
   - NanoTrasen
   - Syndicate
+  - Passive
+  - PetsNT
 
-- type: aiFaction
+- type: faction
   id: SimpleNeutral
 
-- type: aiFaction
+- type: faction
   id: Syndicate
   hostile:
   - NanoTrasen
   - SimpleHostile
   - Xeno
+  - PetsNT
 
-- type: aiFaction
+- type: faction
   id: Xeno
   hostile:
   - NanoTrasen
   - Syndicate
+  - Passive
+  - PetsNT

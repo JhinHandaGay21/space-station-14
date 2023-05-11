@@ -15,7 +15,7 @@ namespace Content.Server.Explosion.Components
         public List<float>? DelayOptions = null;
 
         /// <summary>
-        ///     If not null, this timer will periodically play this sound wile active.
+        ///     If not null, this timer will periodically play this sound while active.
         /// </summary>
         [DataField("beepSound")]
         public SoundSpecifier? BeepSound;
@@ -29,14 +29,23 @@ namespace Content.Server.Explosion.Components
         [DataField("beepInterval")]
         public float BeepInterval = 1;
 
-        [DataField("beepParams")]
-        public AudioParams BeepParams = AudioParams.Default.WithVolume(-2f);
-
         /// <summary>
         ///     Should timer be started when it was stuck to another entity.
         ///     Used for C4 charges and similar behaviour.
         /// </summary>
         [DataField("startOnStick")]
         public bool StartOnStick;
+
+        /// <summary>
+        ///     Allows changing the start-on-stick quality.
+        /// </summary>
+        [DataField("canToggleStartOnStick")]
+        public bool AllowToggleStartOnStick;
+
+        /// <summary>
+        ///     Whether you can examine the item to see its timer or not.
+        /// </summary>
+        [DataField("examinable")]
+        public bool Examinable = true;
     }
 }

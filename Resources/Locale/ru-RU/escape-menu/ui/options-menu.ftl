@@ -7,14 +7,17 @@ ui-options-tab-audio = Аудио
 ui-options-tab-network = Сеть
 ui-options-apply = Применить
 ui-options-reset-all = Сбросить всё
+ui-options-default = По-умолчанию
 
 ## Audio menu
 
 ui-options-master-volume = Основная громкость:
 ui-options-midi-volume = MIDI (Инструменты) громкость:
 ui-options-ambience-volume = Громкость окружения:
+ui-options-lobby-volume = Громкость лобби и окончания раунда:
 ui-options-ambience-max-sounds = Кол-во одновременных звуков окружения:
 ui-options-lobby-music = Музыка в лобби
+ui-options-restart-sounds = Звуки перезапуска раунда
 ui-options-event-music = Музыка событий
 ui-options-admin-sounds = Музыка админов
 ui-options-station-ambience = Эмбиент станции
@@ -25,6 +28,7 @@ ui-options-volume-percent = { TOSTRING($volume, "P0") }
 ## Graphics menu
 
 ui-options-show-held-item = Показать удерживаемый элемент рядом с курсором?
+ui-options-show-combat-mode-indicators = Показать индикатор боевого режима рядом с курсором?
 ui-options-vsync = Вертикальная синхронизация
 ui-options-fullscreen = Полный экран
 ui-options-lighting-label = Качество освещения:
@@ -42,19 +46,21 @@ ui-options-scale-175 = 175%
 ui-options-scale-200 = 200%
 ui-options-hud-theme = Тема HUD:
 ui-options-hud-theme-default = По умолчанию
-ui-options-hud-theme-modernized = Модернизированный
-ui-options-hud-theme-classic = Классический
+ui-options-hud-theme-modernized = Модернизированная
+ui-options-hud-theme-classic = Классическая
 ui-options-vp-stretch = Растянуть изображение для соответствия окну игры
-ui-options-vp-scale = Fixed viewport scale: x{ $scale }
-ui-options-vp-integer-scaling = Prefer integer scaling (might cause black bars/clipping)
+ui-options-vp-scale = Фиксированный масштаб окна игры: x{ $scale }
+ui-options-vp-integer-scaling = Использовать целочисленное масштабирование (может вызывать появление чёрных полос/обрезания)
 ui-options-vp-integer-scaling-tooltip =
-    If this option is enabled, the viewport will be scaled using an integer value
-    at specific resolutions. While this results in crisp textures, it also often
-    means that black bars appear at the top/bottom of the screen or that part
-    of the viewport is not visible.
+    Если эта опция включена, область просмотра будет масштабироваться,
+    используя целочисленное значение при определённых разрешениях. Хотя это и
+    приводит к чётким текстурам, это часто означает, что сверху/снизу экрана будут
+    чёрные полосы или что часть окна не будет видна.
 ui-options-vp-low-res = Изображение низкого разрешения
 ui-options-parallax-low-quality = Низкокачественный параллакс (фон)
 ui-options-fps-counter = Показать счетчик FPS
+ui-options-vp-width = Ширина окна игры: { $width }
+ui-options-hud-layout = Тип HUD:
 
 ## Controls menu
 
@@ -64,6 +70,7 @@ ui-options-unbound = Пусто
 ui-options-bind-reset = Сбросить
 ui-options-key-prompt = Нажмите кнопку...
 ui-options-header-movement = Перемещение
+ui-options-header-camera = Камера
 ui-options-header-interaction-basic = Базовые взаимодействия
 ui-options-header-interaction-adv = Продвинутые взаимодействия
 ui-options-header-ui = Интерфейс
@@ -79,13 +86,21 @@ ui-options-function-move-left = Двигаться налево
 ui-options-function-move-down = Двигаться вниз
 ui-options-function-move-right = Двигаться направо
 ui-options-function-walk = Идти
+ui-options-function-camera-rotate-left = Повернуть налево
+ui-options-function-camera-rotate-right = Повернуть направо
+ui-options-function-camera-reset = Сбросить камеру
+ui-options-function-zoom-in = Приблизить
+ui-options-function-zoom-out = Отдалить
+ui-options-function-reset-zoom = Сбросить
 ui-options-function-use = Использовать
+ui-options-function-use-secondary = Использовать вторично
+ui-options-function-alt-use = Альтернативное использование
 ui-options-function-wide-attack = Размашистая атака
 ui-options-function-activate-item-in-hand = Использовать предмет в руке
 ui-options-function-alt-activate-item-in-hand = Альтернативно использовать предмет в руке
 ui-options-function-activate-item-in-world = Использовать предмет в мире
 ui-options-function-alt-activate-item-in-world = Альтернативно использовать предмет в мире
-ui-options-function-drop = Бросить предмет
+ui-options-function-drop = Положить предмет
 ui-options-function-examine-entity = Изучить
 ui-options-function-swap-hands = Поменять руки
 ui-options-function-smart-equip-backpack = Умная экипировка в рюкзак
@@ -97,8 +112,10 @@ ui-options-function-release-pulled-object = Перестать тянуть об
 ui-options-function-point = Указать на что-либо
 ui-options-function-focus-chat-input-window = Писать в чат
 ui-options-function-focus-local-chat-window = Писать в чат (IC)
+ui-options-function-focus-emote = Писать в чат (Emote)
 ui-options-function-focus-whisper-chat-window = Писать в чат (Шёпот)
 ui-options-function-focus-radio-window = Писать в чат (Радио)
+ui-options-function-focus-looc-window = Писать в чат (LOOC)
 ui-options-function-focus-ooc-window = Писать в чат (OOC)
 ui-options-function-focus-admin-chat-window = Писать в чат (Админ)
 ui-options-function-focus-dead-chat-window = Писать в чат (Мертвые)
@@ -109,13 +126,18 @@ ui-options-function-open-character-menu = Открыть меню персона
 ui-options-function-open-context-menu = Открыть контекстное меню
 ui-options-function-open-crafting-menu = Открыть меню строительства
 ui-options-function-open-inventory-menu = Открыть снаряжение
-ui-options-function-open-info = Открыть информацию о сервере
+ui-options-function-open-a-help = Открыть админ помощь
 ui-options-function-open-abilities-menu = Открыть меню действий
 ui-options-function-open-entity-spawn-window = Открыть меню спавна сущностей
 ui-options-function-open-sandbox-window = Открыть меню песочницы
 ui-options-function-open-tile-spawn-window = Открыть меню спавна тайлов
 ui-options-function-open-decal-spawn-window = Открыть меню спавна декалей
 ui-options-function-open-admin-menu = Открыть админ меню
+ui-options-function-open-guidebook = Открыть руководство
+ui-options-function-window-close-all = Закрыть все окна
+ui-options-function-window-close-recent = Закрыть текущее окно
+ui-options-function-show-escape-menu = Переключить игровое меню
+ui-options-function-escape-context = Закрыть текущее окно или переключить игровое меню
 ui-options-function-take-screenshot = Сделать скриншот
 ui-options-function-take-screenshot-no-ui = Сделать скриншот (без интерфейса)
 ui-options-function-editor-place-object = Разместить объект
@@ -147,6 +169,7 @@ ui-options-function-loadout6 = 6 страница хотбара
 ui-options-function-loadout7 = 7 страница хотбара
 ui-options-function-loadout8 = 8 страница хотбара
 ui-options-function-loadout9 = 9 страница хотбара
+ui-options-function-loadout0 = 0 страница хотбара
 ui-options-function-shuttle-strafe-up = Стрейф вверх
 ui-options-function-shuttle-strafe-right = Стрейф вправо
 ui-options-function-shuttle-strafe-left = Стрейф влево
@@ -155,3 +178,33 @@ ui-options-function-shuttle-rotate-left = Поворот налево
 ui-options-function-shuttle-rotate-right = Поворот направо
 ui-options-function-shuttle-brake = Торможение
 ui-options-net-interp-ratio = Сетевое сглаживание
+ui-options-net-predict = Предугадывание на стороне клиента
+ui-options-net-interp-ratio-tooltip =
+    Увеличение этого параметра, как правило, делает игру
+    более устойчивой к потере пакетов, однако при этом
+    это так же добавляет немного больше задержки и
+    требует от клиента предсказывать больше будущих тиков.
+ui-options-net-predict-tick-bias = Погрешность тиков предугадывания
+ui-options-net-predict-tick-bias-tooltip =
+    Увеличение этого параметра, как правило, делает игру более устойчивой
+    к потере пакетов между клиентом и сервером, однако при этом
+    немного возрастает задержка, и клиенту требуется предугадывать
+    больше будущих тиков
+ui-options-net-pvs-spawn = Лимит появление PVS сущностей
+ui-options-net-pvs-spawn-tooltip =
+    Ограничение частоты отправки новых появившихся сущностей сервером на клиент.
+    Снижение этого параметра может помочь уменьшить "захлебывания",
+    вызываемые спавном сущностей, но может привести к их резкому появлению.
+ui-options-net-pvs-entry = Лимит PVS сущностей
+ui-options-net-pvs-entry-tooltip =
+    Ограничение частоты отправки новых видимых сущностей сервером на клиент.
+    Снижение этого параметра может помочь уменьшить "захлебывания",
+    вызываемые спавном сущностей, но может привести к их резкому появлению.
+ui-options-net-pvs-leave = Частота удаления PVS
+ui-options-net-pvs-leave-tooltip =
+    Ограничение частоты, с которой клиент будет удалять
+    сущности вне поля зрения. Снижение этого параметра может помочь
+    уменьшить "захлебывания" при ходьбе, но иногда может
+    привести к неправильным предугадываниям и другим проблемам.
+cmd-options-desc = Открывает меню опций, опционально с конкретно выбранной вкладкой.
+cmd-options-help = Использование: options [tab]

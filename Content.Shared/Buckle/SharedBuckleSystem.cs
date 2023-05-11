@@ -1,90 +1,87 @@
+using Content.Shared.ActionBlocker;
+using Content.Shared.Administration.Logs;
+using Content.Shared.Alert;
 using Content.Shared.Buckle.Components;
-using Content.Shared.Interaction.Events;
-using Content.Shared.Movement;
-using Content.Shared.Movement.Events;
+using Content.Shared.Interaction;
+using Content.Shared.Mobs.Systems;
+using Content.Shared.Popups;
+using Content.Shared.Pulling;
 using Content.Shared.Standing;
-using Content.Shared.Throwing;
-using Robust.Shared.Physics.Dynamics;
+using Robust.Shared.Containers;
+using Robust.Shared.Map;
+using Robust.Shared.Network;
+using Robust.Shared.Players;
+using Robust.Shared.Timing;
 
-namespace Content.Shared.Buckle
+namespace Content.Shared.Buckle;
+
+public abstract partial class SharedBuckleSystem : EntitySystem
 {
-    public abstract class SharedBuckleSystem : EntitySystem
+    [Dependency] private readonly INetManager _netManager = default!;
+    [Dependency] private readonly IGameTiming _gameTiming = default!;
+    [Dependency] private readonly ISharedAdminLogManager _adminLogger = default!;
+    [Dependency] private readonly ISharedPlayerManager _playerManager = default!;
+
+    [Dependency] protected readonly SharedAppearanceSystem AppearanceSystem = default!;
+    [Dependency] protected readonly ActionBlockerSystem ActionBlockerSystem = default!;
+    [Dependency] private readonly SharedTransformSystem _transformSystem = default!;
+    [Dependency] private readonly SharedContainerSystem _containerSystem = default!;
+    [Dependency] private readonly SharedInteractionSystem _interactionSystem = default!;
+    [Dependency] private readonly SharedAudioSystem _audioSystem = default!;
+    [Dependency] private readonly SharedPopupSystem _popupSystem = default!;
+    [Dependency] private readonly SharedPullingSystem _pullingSystem = default!;
+    [Dependency] private readonly StandingStateSystem _standingSystem = default!;
+    [Dependency] private readonly AlertsSystem _alertsSystem = default!;
+    [Dependency] private readonly MobStateSystem _mobStateSystem = default!;
+
+    /// <inheritdoc/>
+    public override void Initialize()
     {
-        public override void Initialize()
+        base.Initialize();
+
+        UpdatesAfter.Add(typeof(SharedInteractionSystem));
+        UpdatesAfter.Add(typeof(SharedInputSystem));
+
+        InitializeBuckle();
+        InitializeStrap();
+    }
+
+    /// <summary>
+    /// Reattaches this entity to the strap, modifying its position and rotation.
+    /// </summary>
+    /// <param name="buckleUid">The entity to reattach.</param>
+    /// <param name="strapUid">The entity to reattach the buckleUid entity to.</param>
+    private void ReAttach(
+        EntityUid buckleUid,
+        EntityUid strapUid,
+        BuckleComponent? buckleComp = null,
+        StrapComponent? strapComp = null)
+    {
+        if (!Resolve(strapUid, ref strapComp, false)
+            || !Resolve(buckleUid, ref buckleComp, false))
+            return;
+
+        var buckleTransform = Transform(buckleUid);
+
+        buckleTransform.Coordinates = new EntityCoordinates(strapUid, strapComp.BuckleOffset);
+
+        // Buckle subscribes to move for <reasons> so this might fail.
+        // TODO: Make buckle not do that.
+        if (buckleTransform.ParentUid != strapUid)
+            return;
+
+        _transformSystem.SetLocalRotation(buckleUid, Angle.Zero, buckleTransform);
+
+        switch (strapComp.Position)
         {
-            base.Initialize();
-            SubscribeLocalEvent<SharedStrapComponent, RotateEvent>(OnStrapRotate);
-
-            SubscribeLocalEvent<SharedBuckleComponent, PreventCollideEvent>(PreventCollision);
-            SubscribeLocalEvent<SharedBuckleComponent, DownAttemptEvent>(HandleDown);
-            SubscribeLocalEvent<SharedBuckleComponent, StandAttemptEvent>(HandleStand);
-            SubscribeLocalEvent<SharedBuckleComponent, ThrowPushbackAttemptEvent>(HandleThrowPushback);
-            SubscribeLocalEvent<SharedBuckleComponent, UpdateCanMoveEvent>(HandleMove);
-            SubscribeLocalEvent<SharedBuckleComponent, ChangeDirectionAttemptEvent>(OnBuckleChangeDirectionAttempt);
-        }
-
-        private void OnStrapRotate(EntityUid uid, SharedStrapComponent component, ref RotateEvent args)
-        {
-            // TODO: This looks dirty af.
-            // On rotation of a strap, reattach all buckled entities.
-            // This fixes buckle offsets and draw depths.
-            foreach (var buckledEntity in component.BuckledEntities)
-            {
-                if (!EntityManager.TryGetComponent(buckledEntity, out SharedBuckleComponent? buckled))
-                {
-                    continue;
-                }
-
-                buckled.ReAttach(component);
-                Dirty(buckled);
-            }
-        }
-
-        private void OnBuckleChangeDirectionAttempt(EntityUid uid, SharedBuckleComponent component, ChangeDirectionAttemptEvent args)
-        {
-            if (component.Buckled)
-                args.Cancel();
-        }
-
-        private void HandleMove(EntityUid uid, SharedBuckleComponent component, UpdateCanMoveEvent args)
-        {
-            if (component.LifeStage > ComponentLifeStage.Running)
-                return;
-
-            if (component.Buckled)
-                args.Cancel();
-        }
-
-        private void HandleStand(EntityUid uid, SharedBuckleComponent component, StandAttemptEvent args)
-        {
-            if (component.Buckled)
-            {
-                args.Cancel();
-            }
-        }
-
-        private void HandleDown(EntityUid uid, SharedBuckleComponent component, DownAttemptEvent args)
-        {
-            if (component.Buckled)
-            {
-                args.Cancel();
-            }
-        }
-
-        private void HandleThrowPushback(EntityUid uid, SharedBuckleComponent component, ThrowPushbackAttemptEvent args)
-        {
-            if (!component.Buckled) return;
-            args.Cancel();
-        }
-
-        private void PreventCollision(EntityUid uid, SharedBuckleComponent component, PreventCollideEvent args)
-        {
-            if (args.BodyB.Owner != component.LastEntityBuckledTo) return;
-
-            if (component.Buckled || component.DontCollide)
-            {
-                args.Cancel();
-            }
+            case StrapPosition.None:
+                break;
+            case StrapPosition.Stand:
+                _standingSystem.Stand(buckleUid);
+                break;
+            case StrapPosition.Down:
+                _standingSystem.Down(buckleUid, false, false);
+                break;
         }
     }
 }

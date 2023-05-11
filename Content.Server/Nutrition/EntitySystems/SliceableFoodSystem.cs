@@ -1,12 +1,12 @@
 using Content.Server.Chemistry.Components.SolutionManager;
 using Content.Server.Chemistry.EntitySystems;
-using Content.Server.Hands.Components;
 using Content.Server.Nutrition.Components;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Examine;
 using Content.Shared.FixedPoint;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
+using Content.Shared.Item;
 using Robust.Shared.Audio;
 using Robust.Shared.Containers;
 using Robust.Shared.Player;
@@ -59,23 +59,35 @@ namespace Content.Server.Nutrition.EntitySystems
             var sliceUid = EntityManager.SpawnEntity(component.Slice, transform.Coordinates);
 
             var lostSolution = _solutionContainerSystem.SplitSolution(uid, solution,
-                solution.CurrentVolume / FixedPoint2.New(component.Count));
+                solution.Volume / FixedPoint2.New(component.Count));
 
             // Fill new slice
             FillSlice(sliceUid, lostSolution);
 
-            if (EntityManager.TryGetComponent(user, out HandsComponent? handsComponent))
+            var inCont = _containerSystem.IsEntityInContainer(component.Owner);
+            if (inCont)
             {
-                if (_containerSystem.IsEntityInContainer(component.Owner))
-                {
-                    _handsSystem.PickupOrDrop(user, sliceUid, handsComp: handsComponent);
-                }
+                _handsSystem.PickupOrDrop(user, sliceUid);
+            }
+            else
+            {
+                var xform = Transform(sliceUid);
+                _containerSystem.AttachParentToContainerOrGrid(xform);
+                xform.LocalRotation = 0;
             }
 
             SoundSystem.Play(component.Sound.GetSound(), Filter.Pvs(uid),
                 transform.Coordinates, AudioParams.Default.WithVolume(-2));
 
+            // Decrease size of item based on count - Could implement in the future
+            // Bug with this currently is the size in a container is not updated
+            // if (TryComp(uid, out ItemComponent? itemComp) && TryComp(sliceUid, out ItemComponent? sliceComp))
+            // {
+            //     itemComp.Size -= sliceComp.Size;
+            // }
+
             component.Count--;
+
             // If someone makes food proto with 1 slice...
             if (component.Count < 1)
             {
@@ -84,15 +96,26 @@ namespace Content.Server.Nutrition.EntitySystems
             }
 
             // Split last slice
-            if (component.Count == 1) {
-                var lastSlice = EntityManager.SpawnEntity(component.Slice, transform.Coordinates);
+            if (component.Count > 1)
+                return true;
 
-                // Fill last slice with the rest of the solution
-                FillSlice(lastSlice, solution);
+            sliceUid = EntityManager.SpawnEntity(component.Slice, transform.Coordinates);
 
-                EntityManager.DeleteEntity(uid);
+            // Fill last slice with the rest of the solution
+            FillSlice(sliceUid, solution);
+
+            if (inCont)
+            {
+                _handsSystem.PickupOrDrop(user, sliceUid);
+            }
+            else
+            {
+                var xform = Transform(sliceUid);
+                _containerSystem.AttachParentToContainerOrGrid(xform);
+                xform.LocalRotation = 0;
             }
 
+            EntityManager.DeleteEntity(uid);
             return true;
         }
 

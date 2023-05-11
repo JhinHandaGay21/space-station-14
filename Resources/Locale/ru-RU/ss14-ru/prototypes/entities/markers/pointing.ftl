@@ -1,3 +1,2 @@
-ent-pointingarrow = pointing arrow
+ent-PointingArrow = pointing arrow
     .desc = { "" }
-    .suffix = { "" }

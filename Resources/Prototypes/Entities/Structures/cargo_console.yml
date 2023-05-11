@@ -6,15 +6,17 @@
   - type: InteractionOutline
   - type: Physics
     bodyType: Static
+    canCollide: false
   - type: Transform
     anchored: true
     noRot: true
   - type: Fixtures
     fixtures:
-      - shape:
+      fix1:
+        shape:
           !type:PhysShapeAabb
           bounds: "-0.45,-0.45,0.45,0.00"
-        mass: 25
+        density: 190
         mask:
           - MachineMask
   - type: Sprite
@@ -30,6 +32,14 @@
   - type: Damageable
     damageContainer: Inorganic
     damageModifierSet: Metallic
+  - type: DeviceNetwork
+    deviceNetId: Wireless
+    receiveFrequencyId: BasicDevice
+  - type: WirelessNetworkConnection
+    range: 200
+  - type: DeviceLinkSink
+    ports:
+      - OrderReceiver
   - type: Destructible
     thresholds:
       - trigger:
